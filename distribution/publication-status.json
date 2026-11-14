@@ -1,7 +1,7 @@
 {
   "checkedOn": "2026-11-14",
   "appId": "io.github.pro007m.rg2",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "github": {
     "status": "direct-download-channel",
     "repository": "https://github.com/pro-007-m/rg2-mobile",
@@ -11,10 +11,10 @@
     {
       "name": "RuStore",
       "fee": "free",
-      "status": "not-submitted",
-      "account": "not-created",
+      "status": "deferred",
+      "account": "no-VK-ID",
       "lastObservedStep": "VK ID login",
-      "blocker": "Computer Use stopped on the VK ID URL by its access policy; owner login is required.",
+      "blocker": "RuStore requires VK ID; owner has no VK account. Proceed with independent stores first.",
       "console": "https://console.rustore.ru/"
     },
     {

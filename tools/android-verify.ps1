@@ -29,7 +29,10 @@ try {
         $file = Get-Item -LiteralPath $path
         [pscustomobject]@{name=$file.Name;path=$file.FullName;bytes=$file.Length;sha256=(Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant()}
     }
-    $report = [pscustomobject]@{version='1.0.0';apkVerified=$true;aabVerified=$true;certificateSha256=$apkCertificate;files=$files}
+    $gradleSource = Get-Content -LiteralPath (Join-Path $repoRoot 'android/app/build.gradle') -Raw
+    $versionMatch = [regex]::Match($gradleSource, "versionName\s+'(\d+\.\d+\.\d+)'")
+    if (!$versionMatch.Success) { throw 'Cannot identify Android release version.' }
+    $report = [pscustomobject]@{version=$versionMatch.Groups[1].Value;apkVerified=$true;aabVerified=$true;certificateSha256=$apkCertificate;files=$files}
     $report | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $repoRoot 'android/app/build/outputs/build-verification.json') -Encoding utf8
     $report | ConvertTo-Json -Depth 5
 } finally { $env:JAVA_HOME = $savedJava }

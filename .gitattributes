@@ -1,5 +1,5 @@
 # Preserve the imported offline corpus and upstream license bytes on every OS.
-* -text
+* -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 *.png binary
 *.jpg binary
 *.gif binary

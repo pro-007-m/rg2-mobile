@@ -7,8 +7,12 @@ import re
 import shutil
 import subprocess
 import sys
+import argparse
 
 root = Path(__file__).resolve().parents[1]
+parser = argparse.ArgumentParser()
+parser.add_argument('--qa-report', type=Path, default=root.parent / 'mobile-native-qa/passed/offline-smoke-result.json')
+args = parser.parse_args()
 gradle = (root / "android/app/build.gradle").read_text(encoding="utf-8")
 version = re.search(r"versionName\s+'(\d+\.\d+\.\d+)'", gradle)[1]
 version_code = int(re.search(r"versionCode\s+(\d+)", gradle)[1])
@@ -16,7 +20,10 @@ verification = json.loads((root / "android/app/build/outputs/build-verification.
 pin = (root / "android/release-certificate.sha256").read_text().strip()
 assert verification["apkVerified"] and verification["aabVerified"]
 assert verification["certificateSha256"] == pin
-qa = json.loads((root.parent / "mobile-native-qa/passed/offline-smoke-result.json").read_text(encoding="utf-8-sig"))
+assert verification["version"] == version
+qa = json.loads(args.qa_report.read_text(encoding="utf-8-sig"))
+if version != '1.0.0' or 'versionName' in qa:
+    assert qa['versionName'] == version and qa['versionCode'] == version_code
 assert qa["passed"] and qa["checks"] and all(check["passed"] for check in qa["checks"])
 
 source_files = [root / "android/app/build/outputs/apk/release/app-release.apk",
@@ -62,7 +69,8 @@ manifest = {
     "offlineAssets": {"files": audits[0]["expectedAssets"], "sourceTreeSha256": tree.hexdigest(),
                       "apkByteForByte": True, "aabByteForByte": True, "windowsRuntimeFiles": 0},
     "nativeQa": {"passed": True, "checks": len(qa["checks"]), "api": qa["api"],
-                 "durationMs": qa["durationMs"], "internetPermission": False},
+                 "durationMs": qa["durationMs"], "internetPermission": False,
+                 "versionName": qa.get("versionName", version), "versionCode": qa.get("versionCode", version_code)},
     "files": files,
 }
 public_json = json.dumps(manifest, ensure_ascii=False, indent=2) + "\n"

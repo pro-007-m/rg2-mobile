@@ -127,7 +127,7 @@
       const area = el('textarea', { 'aria-label': 'Текст для копирования', style: 'position:fixed;left:-10000px' }, text);
       document.body.append(area); area.select();
       const copied = document.execCommand('copy'); area.remove();
-      feedback(copied ? 'Скопировано' : 'Выделите скрамбл и нажмите Ctrl+C');
+      feedback(copied ? 'Скопировано' : 'Нажмите и удерживайте текст, затем выберите «Копировать».');
     }
   }
   function addSourceHelp(root, data, key, options = {}) {
@@ -234,8 +234,8 @@
     const feedback = text => { status.textContent = text; };
     const scrambleText = el('p', { class: 'rg2t-scramble', 'data-scramble': 'timer' }, scramble);
     const clockNumber = el('span', { class: 'rg2t-clock-number', 'data-clock': '', 'aria-live': 'off' }, lastDisplay);
-    const hint = el('span', { class: 'rg2t-clock-hint' }, 'Удерживайте пробел 0,5 секунды. Отпустите для старта, нажмите снова для остановки.');
-    const clock = el('button', { class: 'rg2t-clock', type: 'button', 'aria-label': 'Таймер: удерживайте для готовности, отпустите для старта', 'data-state': state }, clockNumber, hint);
+    const hint = el('span', { class: 'rg2t-clock-hint' }, 'Удерживайте палец на времени 0,5 секунды. Отпустите для старта, коснитесь снова для остановки.');
+    const clock = el('button', { class: 'rg2t-clock', type: 'button', 'aria-label': 'Таймер: удерживайте палец на времени 0,5 секунды, отпустите для старта, коснитесь для остановки', 'data-state': state }, clockNumber, hint);
     const sessionSelect = select([], activeId, value => { activeId = value; lastDisplay = '0.00'; persist(); renderResults(); refreshClock(); }, { 'aria-label': 'Сессия' });
     const sizeSelect = select([2, 3, 4, 5, 6, 7].map(value => ({ value, label: value + ' × ' + value })), size, value => { size = Number(value); newScramble(); persist(); }, { 'aria-label': 'Размер кубика' });
     const inspectionCheck = el('input', { type: 'checkbox', onchange: event => { inspectionEnabled = event.target.checked; inspectionActive = false; persist(); refreshClock(); } }); inspectionCheck.checked = inspectionEnabled;
@@ -248,7 +248,7 @@
       const session = { id: uid(), name, results: [], createdAt: Date.now() };
       sessions.push(session); activeId = session.id; sessionName.value = ''; lastDisplay = '0.00'; persist(); renderResults(); refreshClock();
     }, 'rg2t-small', { 'data-action': 'create-session' });
-    root.append(el('h1', { class: 'rg2t-heading' }, 'Таймер'), el('p', { class: 'rg2t-intro' }, 'Скрамбл, сборка и личная статистика. Пробел работает, пока открыт этот экран.'));
+    root.append(el('h1', { class: 'rg2t-heading' }, 'Таймер'), el('p', { class: 'rg2t-intro' }, 'Скрамбл, сборка и личная статистика. Управляйте таймером касаниями. При подключённой клавиатуре можно использовать пробел.'));
     root.append(el('div', { class: 'rg2t-bar' }, field('КУБИК', sizeSelect), field('СЕССИЯ', sessionSelect), el('label', { class: 'rg2t-check' }, inspectionCheck, 'Предосмотр 15 секунд')));
     const mainCard = el('div', { class: 'rg2t-card' }, scrambleText, el('div', { class: 'rg2t-bar' }, refreshButton, button('Копировать', () => copyText(scramble, feedback))), clock, stats, status);
     const history = el('div', { class: 'rg2t-card' }, el('h2', { class: 'rg2t-history-heading' }, 'История сборок'), el('div', { class: 'rg2t-new-session' }, sessionName, newSessionButton), results);
@@ -263,7 +263,7 @@
       const valid = values.map(resultValue).filter(Number.isFinite);
       const avgText = count => { const value = averageOf(values, count); return value == null ? '—' : Number.isFinite(value) ? clockText(value) : 'DNF'; };
       stats.replaceChildren(...[['СБОРОК', String(values.length)], ['ЛУЧШЕЕ', valid.length ? clockText(Math.min(...valid)) : '—'], ['ao5', avgText(5)], ['ao12', avgText(12)]].map(([label, text]) => el('div', { class: 'rg2t-stat' }, el('span', {}, label), el('strong', {}, text))));
-      if (!values.length) { results.replaceChildren(el('div', { class: 'rg2t-empty' }, 'Первые результаты появятся после сборки. Сессии сохраняются на этом компьютере.')); return; }
+      if (!values.length) { results.replaceChildren(el('div', { class: 'rg2t-empty' }, 'Первые результаты появятся после сборки. Сессии сохраняются на этом устройстве.')); return; }
       results.replaceChildren(...values.map((result, index) => ({ result, index })).reverse().map(({ result, index }) => {
         const updatePenalty = penalty => {
           if (state !== 'idle') return;
@@ -284,11 +284,11 @@
       clock.dataset.state = state;
       const busy = state !== 'idle';
       [sessionSelect, sizeSelect, inspectionCheck, refreshButton, newSessionButton, sessionName].forEach(control => { control.disabled = busy; });
-      if (state === 'idle') { clockNumber.textContent = lastDisplay; hint.textContent = inspectionEnabled ? 'Удерживайте пробел 0,5 секунды и отпустите для предосмотра. Затем повторите для старта сборки.' : 'Удерживайте пробел 0,5 секунды. Отпустите для старта, нажмите снова для остановки.'; }
-      if (state === 'holding') hint.textContent = 'Удерживайте…';
+      if (state === 'idle') { clockNumber.textContent = lastDisplay; hint.textContent = inspectionEnabled ? 'Удерживайте палец на времени 0,5 секунды и отпустите для предосмотра. Затем повторите удержание и отпустите для старта сборки.' : 'Удерживайте палец на времени 0,5 секунды. Отпустите для старта, коснитесь снова для остановки.'; }
+      if (state === 'holding') hint.textContent = 'Удерживайте палец…';
       if (state === 'ready') hint.textContent = 'Готово. Отпустите для ' + (inspectionEnabled && !inspectionActive ? 'предосмотра.' : 'старта.');
-      if (state === 'inspection') hint.textContent = 'Предосмотр. Удерживайте пробел и отпустите для старта сборки.';
-      if (state === 'running') hint.textContent = 'Нажмите пробел или щёлкните по времени для остановки.';
+      if (state === 'inspection') hint.textContent = 'Предосмотр. Удерживайте палец на времени 0,5 секунды и отпустите для старта сборки.';
+      if (state === 'running') hint.textContent = 'Коснитесь времени, чтобы остановить таймер. На клавиатуре — пробел.';
     }
     function newScramble() { state = 'idle'; inspectionActive = false; scramble = generateScramble(size); scrambleText.textContent = scramble; refreshClock(); }
     function beginPress() {

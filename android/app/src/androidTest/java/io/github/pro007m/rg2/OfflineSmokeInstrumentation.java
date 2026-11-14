@@ -42,6 +42,8 @@ public final class OfflineSmokeInstrumentation extends Instrumentation {
     private long deadline;
     private long limit = 90000;
     private int sequence;
+    private String targetVersionName;
+    private long targetVersionCode = -1;
 
     @Override public void onCreate(Bundle arguments) {
         super.onCreate(arguments);
@@ -62,6 +64,8 @@ public final class OfflineSmokeInstrumentation extends Instrumentation {
             output = new File(getTargetContext().getExternalFilesDir(null), "qa");
             require(output.isDirectory() || output.mkdirs(), "Cannot create private QA output directory");
             PackageInfo info = getTargetContext().getPackageManager().getPackageInfo(PACKAGE, PackageManager.GET_PERMISSIONS);
+            targetVersionName = info.versionName;
+            targetVersionCode = android.os.Build.VERSION.SDK_INT >= 28 ? info.getLongVersionCode() : info.versionCode;
             if (info.requestedPermissions != null) for (String permission : info.requestedPermissions) {
                 require(!"android.permission.INTERNET".equals(permission), "Offline target unexpectedly requests INTERNET permission");
             }
@@ -229,6 +233,7 @@ public final class OfflineSmokeInstrumentation extends Instrumentation {
         try {
             JSONObject report = new JSONObject().put("passed", passed).put("durationMs", SystemClock.elapsedRealtime() - started)
                 .put("targetPackage", PACKAGE).put("api", android.os.Build.VERSION.SDK_INT).put("device", android.os.Build.MODEL)
+                .put("versionName", targetVersionName).put("versionCode", targetVersionCode)
                 .put("checks", checks).put("screenshots", screenshots).put("storageRestored", restored)
                 .put("offlineEvidence", "No INTERNET permission; only APK-local same-origin resource requests")
                 .put("error", failure == null ? JSONObject.NULL : failure.toString());
