@@ -4,6 +4,10 @@
 
 Android-версия RG2 Desktop: та же локальная библиотека, порядок разделов, алгоритмы, схемы и тренажёры с управлением для телефона и планшета.
 
+**[Скачать и установить на телефон — APK 1.0.1, 28,3 МБ](https://github.com/pro-007-m/rg2-mobile/releases/download/v1.0.1/RG2-Mobile-1.0.1.apk)**
+
+Для обычной установки выбирайте файл `.apk`. Файл `.aab` предназначен для загрузки в кабинеты магазинов и напрямую на телефон не устанавливается.
+
 <img src="distribution/screenshots/solver-portrait.png" width="270" alt="Решатель на Android"> <img src="distribution/screenshots/settings-graphite.png" width="270" alt="Настройки Graphite на Android">
 
 ## Что перенесено
@@ -52,6 +56,8 @@ python tests/catalog.test.py
 ```
 
 Проверяются сохранность всех исходных ресурсов по SHA-256, тексты и формулы каталога, навигация и копирование, таймер, 54 точных перестановки ходов, невозможные раскраски, ориентация креста, решения и этапы, материалы модели, жесты и Android-мост. Инструментальные Android-проверки находятся в `android/app/src/androidTest/`.
+
+[Проверка установки опубликованного APK 1.0.1](docs/release-install-verification.md) · [Запуск инструментальных проверок Release](docs/android-release-smoke.md).
 
 ## Структура
 

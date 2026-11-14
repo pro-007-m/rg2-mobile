@@ -3,11 +3,19 @@ plugins { id 'com.android.application' }
 def secret = { name -> System.getenv(name) }
 def hasReleaseKey = ['RG2_SIGNING_STORE_FILE', 'RG2_SIGNING_STORE_PASSWORD',
     'RG2_SIGNING_KEY_ALIAS', 'RG2_SIGNING_KEY_PASSWORD'].every { secret(it) }
+def rg2TestBuildType = providers.gradleProperty('rg2TestBuildType').getOrElse('debug')
+if (!(rg2TestBuildType in ['debug', 'release'])) {
+    throw new GradleException('rg2TestBuildType must be debug or release')
+}
+if (rg2TestBuildType == 'release' && !hasReleaseKey) {
+    throw new GradleException('Release instrumentation requires the canonical release signing environment')
+}
 
 android {
     namespace 'io.github.pro007m.rg2'
     compileSdk 36
     buildToolsVersion '36.0.0'
+    testBuildType rg2TestBuildType
 
     defaultConfig {
         applicationId 'io.github.pro007m.rg2'
@@ -43,6 +51,17 @@ android {
         }
     }
     sourceSets.main.assets.srcDir(layout.buildDirectory.dir('generated/rg2assets'))
+}
+
+androidComponents {
+    onVariants(selector().withBuildType('release')) { variant ->
+        if (rg2TestBuildType == 'release' && variant.androidTest != null) {
+            if (variant.androidTest.signingConfig == null) {
+                throw new GradleException('Release AndroidTest signing is not configured')
+            }
+            variant.androidTest.signingConfig.setConfig(android.signingConfigs.getByName('release'))
+        }
+    }
 }
 
 tasks.register('syncWebAssets', Sync) {

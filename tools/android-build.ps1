@@ -18,6 +18,12 @@ $sdkRoot = [IO.Path]::GetFullPath($SdkDirectory)
 $javaRoot = [IO.Path]::GetFullPath($JavaDirectory)
 $cacheRoot = [IO.Path]::GetFullPath($CacheDirectory)
 $signingRoot = [IO.Path]::GetFullPath($SigningDirectory)
+if ($IncludeInstrumentation -and $Configuration -eq 'Release' -and
+    (!(Test-Path -LiteralPath (Join-Path $repoRoot 'android/release-certificate.sha256')) -or
+     !(Test-Path -LiteralPath (Join-Path $signingRoot 'rg2-mobile-release.p12')) -or
+     !(Test-Path -LiteralPath (Join-Path $signingRoot 'signing.json')))) {
+    throw 'Release instrumentation requires the existing canonical key, signing backup, and certificate pin.'
+}
 $repoPrefix = $repoRoot.TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
 if ($signingRoot.Equals($repoRoot, [StringComparison]::OrdinalIgnoreCase) -or
     $signingRoot.StartsWith($repoPrefix, [StringComparison]::OrdinalIgnoreCase)) {
@@ -102,13 +108,33 @@ try {
         }
     }
     [string[]]$tasks = if ($Configuration -eq 'Release') { @(':app:assembleRelease', ':app:bundleRelease') } else { @(':app:assembleDebug') }
-    if ($IncludeInstrumentation) { $tasks += ':app:assembleDebugAndroidTest' }
     $gradleArgs = @('-p', $androidRoot, '--no-daemon', '--console=plain', '--max-workers=2')
+    if ($IncludeInstrumentation) {
+        $testBuildType = $Configuration.ToLowerInvariant()
+        $tasks += if ($Configuration -eq 'Release') { ':app:assembleReleaseAndroidTest' } else { ':app:assembleDebugAndroidTest' }
+        $gradleArgs += '-Prg2TestBuildType=' + $testBuildType
+    }
     if ($Offline) { $gradleArgs += '--offline' }
     & (Join-Path $gradleRoot 'bin/gradle.bat') @gradleArgs @tasks
     if ($LASTEXITCODE -ne 0) { throw 'Android build failed. See the Gradle diagnostics above.' }
     if ($Configuration -eq 'Release') {
         & (Join-Path $PSScriptRoot 'android-verify.ps1') -SdkDirectory $sdkRoot -JavaDirectory $javaRoot
+    }
+    if ($IncludeInstrumentation) {
+        $appApk = Join-Path $androidRoot ('app/build/outputs/apk/' + $testBuildType + '/app-' + $testBuildType + '.apk')
+        $testApk = Join-Path $androidRoot ('app/build/outputs/apk/androidTest/' + $testBuildType + '/app-' + $testBuildType + '-androidTest.apk')
+        $signers = foreach ($path in @($appApk, $testApk)) {
+            if (!(Test-Path -LiteralPath $path)) { throw ('Expected instrumentation artifact is missing: ' + $path) }
+            $verified = & (Join-Path $sdkRoot 'build-tools/36.0.0/apksigner.bat') verify --verbose --print-certs $path 2>&1
+            if ($LASTEXITCODE -ne 0) { throw ('Instrumentation artifact signature failed: ' + $path) }
+            $match = [regex]::Match(($verified -join "`n"), 'Signer #1 certificate SHA-256 digest:\s*([a-fA-F0-9]{64})')
+            if (!$match.Success) { throw 'Cannot identify instrumentation artifact signer.' }
+            $match.Groups[1].Value.ToLowerInvariant()
+        }
+        if ($signers[0] -ne $signers[1]) { throw 'Target APK and AndroidTest APK must have the same signing certificate.' }
+        if ($Configuration -eq 'Release' -and $signers[0] -ne (Get-Content -LiteralPath $certificatePin -Raw).Trim().ToLowerInvariant()) {
+            throw 'Release instrumentation signer does not match the canonical certificate pin.'
+        }
     }
 } finally {
     foreach ($key in $saved.Keys) { [Environment]::SetEnvironmentVariable($key, $saved[$key], 'Process') }

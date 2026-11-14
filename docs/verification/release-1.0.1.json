@@ -1,0 +1,101 @@
+{
+  "checkedAt": "2026-11-14T15:10:47.679267Z",
+  "artifact": {
+    "url": "https://github.com/pro-007-m/rg2-mobile/releases/download/v1.0.1/RG2-Mobile-1.0.1.apk",
+    "bytes": 28295384,
+    "sha256": "8c4599cea4d5966dcd182e84dcfe7cd03fec8c3ab72fc0df3a907e0a7b5b49c0"
+  },
+  "platform": {
+    "android": "16",
+    "api": 36,
+    "device": "sdk_gphone64_x86_64"
+  },
+  "passed": true,
+  "durationMs": 9979,
+  "installedTarget": {
+    "packageName": "io.github.pro007m.rg2",
+    "versionName": "1.0.1",
+    "versionCode": 2,
+    "buildType": "release",
+    "debuggable": false,
+    "testOnly": false,
+    "installedApkSha256": "8c4599cea4d5966dcd182e84dcfe7cd03fec8c3ab72fc0df3a907e0a7b5b49c0",
+    "signerSha256": [
+      "6d7bfc2e43e12468c0d94a820adfd4c97ac69119d2bbd4f5b4d5148627d99de7"
+    ],
+    "fixtureApkSha256": "49e797753bc008259d9a961c8e2fb65f641f172d7199e4f1bb0f7407e253ebd8",
+    "expectedFixtureSha256": "49e797753bc008259d9a961c8e2fb65f641f172d7199e4f1bb0f7407e253ebd8",
+    "fixturePackage": "io.github.pro007m.rg2.test",
+    "fixtureSignerSha256": [
+      "6d7bfc2e43e12468c0d94a820adfd4c97ac69119d2bbd4f5b4d5148627d99de7"
+    ],
+    "releaseGateRequired": true,
+    "expectedApkSha256": "8c4599cea4d5966dcd182e84dcfe7cd03fec8c3ab72fc0df3a907e0a7b5b49c0",
+    "expectedSignerSha256": "6d7bfc2e43e12468c0d94a820adfd4c97ac69119d2bbd4f5b4d5148627d99de7"
+  },
+  "checks": [
+    {
+      "name": "native-offline-permissions",
+      "passed": true
+    },
+    {
+      "name": "boot",
+      "passed": true
+    },
+    {
+      "name": "catalog-and-local-resources",
+      "passed": true
+    },
+    {
+      "name": "home-route",
+      "passed": true
+    },
+    {
+      "name": "article-favorite",
+      "passed": true
+    },
+    {
+      "name": "native-back-route",
+      "passed": true
+    },
+    {
+      "name": "tools-route",
+      "passed": true
+    },
+    {
+      "name": "localStorage-survives-reload",
+      "passed": true
+    },
+    {
+      "name": "solver-WebGL2",
+      "passed": true
+    },
+    {
+      "name": "random-scramble",
+      "passed": true
+    },
+    {
+      "name": "worker-candidate-and-playback",
+      "passed": true
+    },
+    {
+      "name": "paused-state-replays-exactly",
+      "passed": true
+    },
+    {
+      "name": "landscape-layout",
+      "passed": true
+    }
+  ],
+  "cleanInstall": {
+    "adb": true,
+    "packageInstallerSession": true,
+    "nativeFilesInstaller": true,
+    "openAfterNativeInstall": true,
+    "installedBinaryMatchesArtifact": true
+  },
+  "offlineChecksPassed": 13,
+  "wifiConnectedChecksPassed": 13,
+  "screenshot": "release-1.0.1-installed.png",
+  "limitation": "The reported phone installation error was not reproduced on this Android 16 emulator; the phone model, Android version and downloaded file remain unconfirmed."
+}

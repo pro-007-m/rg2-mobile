@@ -44,10 +44,13 @@ public final class OfflineSmokeInstrumentation extends Instrumentation {
     private int sequence;
     private String targetVersionName;
     private long targetVersionCode = -1;
+    private Bundle testArguments = new Bundle();
+    private JSONObject installedTarget;
 
     @Override public void onCreate(Bundle arguments) {
         super.onCreate(arguments);
         if (arguments != null) {
+            testArguments = new Bundle(arguments);
             try { limit = Math.max(40000, Math.min(90000, Long.parseLong(arguments.getString("timeoutMs", "90000")))); }
             catch (NumberFormatException ignored) { }
         }
@@ -63,6 +66,7 @@ public final class OfflineSmokeInstrumentation extends Instrumentation {
         try {
             output = new File(getTargetContext().getExternalFilesDir(null), "qa");
             require(output.isDirectory() || output.mkdirs(), "Cannot create private QA output directory");
+            installedTarget = InstalledTarget.inspect(getTargetContext(), getContext(), testArguments);
             PackageInfo info = getTargetContext().getPackageManager().getPackageInfo(PACKAGE, PackageManager.GET_PERMISSIONS);
             targetVersionName = info.versionName;
             targetVersionCode = android.os.Build.VERSION.SDK_INT >= 28 ? info.getLongVersionCode() : info.versionCode;
@@ -234,6 +238,8 @@ public final class OfflineSmokeInstrumentation extends Instrumentation {
             JSONObject report = new JSONObject().put("passed", passed).put("durationMs", SystemClock.elapsedRealtime() - started)
                 .put("targetPackage", PACKAGE).put("api", android.os.Build.VERSION.SDK_INT).put("device", android.os.Build.MODEL)
                 .put("versionName", targetVersionName).put("versionCode", targetVersionCode)
+                .put("installedTarget", installedTarget == null ? JSONObject.NULL : installedTarget)
+                .put("testedBuildType", installedTarget == null ? "unknown" : installedTarget.optString("buildType", "unknown"))
                 .put("checks", checks).put("screenshots", screenshots).put("storageRestored", restored)
                 .put("offlineEvidence", "No INTERNET permission; only APK-local same-origin resource requests")
                 .put("error", failure == null ? JSONObject.NULL : failure.toString());
