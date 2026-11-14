@@ -1,0 +1,203 @@
+{
+  "schemaVersion": 1,
+  "checkedOn": "2026-11-14",
+  "scope": "Source-tree byte preservation and copied component notices; not a complete APK license clearance or binary device test.",
+  "desktopBaseline": {
+    "repository": "https://github.com/pro-007-m/rg2-desktop",
+    "commit": "533007b98fa815fc77762dac8e2008ac639b4e53",
+    "version": "1.5.0"
+  },
+  "originalApk": {
+    "version": "RG2F 4.241017.6",
+    "package": "ru.tohaman.rg2",
+    "sha256": "401c4aed132f05a773a68fc61d2003f00fb5df6035bd03f7855757988b7396f7",
+    "hashSource": "data/migration-report.json"
+  },
+  "catalog": {
+    "phases": 60,
+    "records": 560,
+    "distinctTeachingOffsets": 505
+  },
+  "originalAssets": {
+    "manifest": "data/original-assets-manifest.json",
+    "manifestSha256": "6b0584e2cfada796701f6996ba9128a1b16990cbc37cbf9a5679e1dfebe75341",
+    "expectedCount": 2063,
+    "actualCount": 2063,
+    "sha256Matched": 2063,
+    "bytes": 22435016,
+    "missing": [],
+    "changed": [],
+    "unexpected": []
+  },
+  "preservedFiles": [
+    {
+      "path": "data/catalog.json",
+      "sha256": "2b7edb69f00e6dadb725eb59d651df8844c0ede1994d412357836a1bb53ab7a7",
+      "desktopSha256": "2b7edb69f00e6dadb725eb59d651df8844c0ede1994d412357836a1bb53ab7a7",
+      "sameAsDesktop": true
+    },
+    {
+      "path": "data/trainer-data.json",
+      "sha256": "4b3976c7f892f6b2093d1cb8d3d397dabcb7aa00242b3e7ee8f80a704b5cc9c8",
+      "desktopSha256": "4b3976c7f892f6b2093d1cb8d3d397dabcb7aa00242b3e7ee8f80a704b5cc9c8",
+      "sameAsDesktop": true
+    },
+    {
+      "path": "data/original-apk-strings.json",
+      "sha256": "29bd46b47051f0a324fe3514269d213f9853a376018ef2e9ab1aefd8c1d867c1",
+      "desktopSha256": "29bd46b47051f0a324fe3514269d213f9853a376018ef2e9ab1aefd8c1d867c1",
+      "sameAsDesktop": true
+    },
+    {
+      "path": "data/original-assets-manifest.json",
+      "sha256": "6b0584e2cfada796701f6996ba9128a1b16990cbc37cbf9a5679e1dfebe75341",
+      "desktopSha256": "6b0584e2cfada796701f6996ba9128a1b16990cbc37cbf9a5679e1dfebe75341",
+      "sameAsDesktop": true
+    },
+    {
+      "path": "data/snapshot-array-evidence.json",
+      "sha256": "c7ebab52bb7515f85168ac1cc0125a7c36c0387b4e703f7931c967685ae17080",
+      "desktopSha256": "c7ebab52bb7515f85168ac1cc0125a7c36c0387b4e703f7931c967685ae17080",
+      "sameAsDesktop": true
+    },
+    {
+      "path": "data/notation-vm-reference-evidence.json",
+      "sha256": "7357c2c8ecf139d7ff41b100466fe56a146aa36ea8ef31ded7c2db1a39658e97",
+      "desktopSha256": "7357c2c8ecf139d7ff41b100466fe56a146aa36ea8ef31ded7c2db1a39658e97",
+      "sameAsDesktop": true
+    },
+    {
+      "path": "data/solver/algorithm-data.json",
+      "sha256": "4043fb91f7dfdf7bbd128eed8310adbd4372396246f3849500023c89ec4bb4cc",
+      "desktopSha256": "4043fb91f7dfdf7bbd128eed8310adbd4372396246f3849500023c89ec4bb4cc",
+      "sameAsDesktop": true
+    },
+    {
+      "path": "data/solver/core.mjs",
+      "sha256": "011b2716dfa3bb655a00dc44fcea520bb41ab1f6d2aec722879c07d8b2a82824",
+      "desktopSha256": "011b2716dfa3bb655a00dc44fcea520bb41ab1f6d2aec722879c07d8b2a82824",
+      "sameAsDesktop": true
+    },
+    {
+      "path": "data/solver/model-geometry.mjs",
+      "sha256": "c48acc0293c76a444492a0e70152532ad4c4c8c556efe011a619c0ff56b080c0",
+      "desktopSha256": "c48acc0293c76a444492a0e70152532ad4c4c8c556efe011a619c0ff56b080c0",
+      "sameAsDesktop": true
+    },
+    {
+      "path": "data/solver/image-settings.mjs",
+      "sha256": "709a72a7192d8c44246cf220a889f36a87c82985b160bc2dfa856a7906b204e7",
+      "desktopSha256": "709a72a7192d8c44246cf220a889f36a87c82985b160bc2dfa856a7906b204e7",
+      "sameAsDesktop": true
+    },
+    {
+      "path": "data/solver/orientation.mjs",
+      "sha256": "69e8e3e40681391e48bc8d239cc436fbf015dd2bf0ea6725bdeaa378abb9fa68",
+      "desktopSha256": "69e8e3e40681391e48bc8d239cc436fbf015dd2bf0ea6725bdeaa378abb9fa68",
+      "sameAsDesktop": true
+    },
+    {
+      "path": "data/solver/scramble.mjs",
+      "sha256": "7fe7caf14c5063ac771a9089d259a48278f5d6b3c85b25aae0a8ff1418765595",
+      "desktopSha256": "7fe7caf14c5063ac771a9089d259a48278f5d6b3c85b25aae0a8ff1418765595",
+      "sameAsDesktop": true
+    },
+    {
+      "path": "data/solver/search.mjs",
+      "sha256": "e8fee1f110e59d92a43bd054685d8125a8d492a22ae4b292b211c0d71891baf4",
+      "desktopSha256": "e8fee1f110e59d92a43bd054685d8125a8d492a22ae4b292b211c0d71891baf4",
+      "sameAsDesktop": true
+    },
+    {
+      "path": "data/solver/catalog.mjs",
+      "sha256": "399d5ccb33ea991dd2136e3bbfbbe694f444279e9168b5e5ff01d93a65f5b28d",
+      "desktopSha256": "399d5ccb33ea991dd2136e3bbfbbe694f444279e9168b5e5ff01d93a65f5b28d",
+      "sameAsDesktop": true
+    },
+    {
+      "path": "data/solver/trace.mjs",
+      "sha256": "4b852e9494c344bb7a2ef18c3f39e01180c0f40532b18bb79cff559110eeddf3",
+      "desktopSha256": "4b852e9494c344bb7a2ef18c3f39e01180c0f40532b18bb79cff559110eeddf3",
+      "sameAsDesktop": true
+    },
+    {
+      "path": "data/solver/worker.mjs",
+      "sha256": "23125b03780d1dcba908c77b330892a217dcaa128f9cba2b8b57c9c2973e11b3",
+      "desktopSha256": "23125b03780d1dcba908c77b330892a217dcaa128f9cba2b8b57c9c2973e11b3",
+      "sameAsDesktop": true
+    }
+  ],
+  "licenseCopies": [
+    {
+      "repositoryPath": "LICENSES/Apache-2.0-RG2.txt",
+      "packagedAssetPath": "data/licenses/Apache-2.0-RG2.txt",
+      "sha256": "b479fce41fb16e9e910c60b767ec47469cedc02365125d2cb4b31677bf3d0023",
+      "samePackagedCopy": true
+    },
+    {
+      "repositoryPath": "LICENSES/Apache-2.0-AndroidX-WebKit.txt",
+      "packagedAssetPath": "data/licenses/Apache-2.0-AndroidX-WebKit.txt",
+      "sha256": "809fa1ed21450f59827d1e9aec720bbc4b687434fa22283c6cb5dd82a47ab9c0",
+      "samePackagedCopy": true
+    },
+    {
+      "repositoryPath": "LICENSES/MIT-Three.txt",
+      "packagedAssetPath": "data/licenses/MIT-Three.txt",
+      "sha256": "8b378ebe60e2fe500158cb0ac71cb5e8b7d92953c2abcc63a0eb90499653b5bc",
+      "samePackagedCopy": true
+    }
+  ],
+  "upstreamComparison": [
+    {
+      "repository": "https://github.com/Tohaman/RG2.kotlin",
+      "commit": "a1755567246a90bca00020b38d58f6a1482511d1",
+      "archiveSha256": "bb93c89de475073e8aafa1debbd6aeee46331910a8c19eef845e92979b30d57d",
+      "rootLicense": "Apache-2.0",
+      "teachingComparison": {
+        "same-html-after-whitespace-and-image-path-normalization": 115,
+        "same-visible-text-after-whitespace-normalization": 327,
+        "unmatched": 63
+      },
+      "assetComparison": {
+        "total_apk": 2063,
+        "exact_sha256": 0,
+        "same_stem_candidates_only": 1671,
+        "no_source_candidate": 392
+      }
+    },
+    {
+      "repository": "https://github.com/Tohaman/RG2.kotlin.new",
+      "commit": "70d40ac896b2acef1ae493f07cb46e6e1fb0fb28",
+      "archiveSha256": "b875cfd9453e2d68ae6ced98b9da6bd7545d28c88f9387564134a2b5cf02f7ab",
+      "rootLicense": null,
+      "teachingComparison": {
+        "same-html-after-whitespace-and-image-path-normalization": 222,
+        "unmatched": 29,
+        "same-visible-text-after-whitespace-normalization": 254
+      },
+      "assetComparison": {
+        "total_apk": 2063,
+        "exact_sha256": 1,
+        "same_stem_candidates_only": 1743,
+        "no_source_candidate": 319
+      }
+    },
+    {
+      "repository": "https://github.com/Tohaman/RG2_flutter",
+      "commit": "6a597d460c6edb0d6c6be87e853e737cd307c1fb",
+      "archiveSha256": "6a469a5153ac82d6d1095c9a8a9a7e780353e5b79f2983421ac64599e1245e3a",
+      "rootLicense": null,
+      "teachingComparison": {
+        "unmatched": 505
+      },
+      "assetComparison": {
+        "total_apk": 2063,
+        "exact_sha256": 1,
+        "same_stem_candidates_only": 0,
+        "no_source_candidate": 2062
+      }
+    }
+  ],
+  "wholePackageRedistributionClearance": "Not established by this audit. 63 later HTML lessons, bitmap/vector correspondence and additional formula collections remain separately scoped.",
+  "noticesRequireRebuiltArtifacts": true
+}

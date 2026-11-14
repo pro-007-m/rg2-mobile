@@ -1,0 +1,47 @@
+RG2 MOBILE — THIRD-PARTY SOURCE NOTICES
+
+This is a component attribution summary, not a blanket license for the APK.
+
+Desktop foundation:
+RG2 Desktop commit 533007b98fa815fc77762dac8e2008ac639b4e53
+https://github.com/pro-007-m/rg2-desktop/tree/533007b98fa815fc77762dac8e2008ac639b4e53
+
+Original library snapshot:
+RG2F 4.241017.6, package ru.tohaman.rg2.
+Original public author attribution: Copyright Rozov Anton.
+Apache-licensed reference: Tohaman/RG2.kotlin, commit
+a1755567246a90bca00020b38d58f6a1482511d1.
+https://github.com/Tohaman/RG2.kotlin/tree/a1755567246a90bca00020b38d58f6a1482511d1
+The original license is included as Apache-2.0-RG2.txt, without modification.
+
+Audit scope: 442 of 505 unique teaching strings correspond to that older
+Apache-licensed snapshot under limited normalization; 63 later HTML lessons
+were not matched. All 2,063 original APK assets are preserved byte-for-byte.
+Their correspondence to older licensed drawable XML has not been verified
+by geometry or pixels. Same filenames alone do not prove that correspondence.
+No blanket Apache license is asserted for the unmatched lessons or images.
+
+Representation changes: APK strings were collected into JSON, navigation was
+reconstructed, image paths were rewritten to packaged PNG paths, and desktop/
+Android layouts, algorithm controls and touch/native integration were added.
+Original teaching text, formulas, links and source-author references remain.
+
+Three.js 0.187.0 and selected addons:
+Copyright (c) 2010-2026 Three.js authors. MIT License.
+Full notice: MIT-Three.txt, also retained in solver/vendor/LICENSE.three.txt.
+https://github.com/mrdoob/three.js
+
+AndroidX WebKit 1.18.0:
+The Android Open Source Project. Apache License 2.0.
+Full component license: Apache-2.0-AndroidX-WebKit.txt, copied from the
+resolved artifact's META-INF/androidx/webkit/webkit/LICENSE.txt.
+https://developer.android.com/jetpack/androidx/releases/webkit#1.18.0
+
+Additional functional algorithm notations were imported from RG2 and
+SpeedCubeDB. Source URLs and hashes are preserved in the source release's
+docs/solver-sources.json; provenance does not itself create a license grant.
+
+Detailed source attribution and remaining coverage questions are recorded in
+THIRD_PARTY_NOTICES.md and docs/source-license-audit.md in the source release.
+No material was removed by this audit. No official affiliation or trademark
+permission is claimed.

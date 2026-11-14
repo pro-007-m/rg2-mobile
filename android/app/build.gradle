@@ -1,0 +1,59 @@
+plugins { id 'com.android.application' }
+
+def secret = { name -> System.getenv(name) }
+def hasReleaseKey = ['RG2_SIGNING_STORE_FILE', 'RG2_SIGNING_STORE_PASSWORD',
+    'RG2_SIGNING_KEY_ALIAS', 'RG2_SIGNING_KEY_PASSWORD'].every { secret(it) }
+
+android {
+    namespace 'io.github.pro007m.rg2'
+    compileSdk 36
+    buildToolsVersion '36.0.0'
+
+    defaultConfig {
+        applicationId 'io.github.pro007m.rg2'
+        minSdk 24
+        targetSdk 36
+        versionCode 1
+        versionName '1.0.0'
+        testInstrumentationRunner 'io.github.pro007m.rg2.OfflineSmokeInstrumentation'
+    }
+    buildFeatures { buildConfig true }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    if (hasReleaseKey) {
+        signingConfigs {
+            release {
+                storeFile file(secret('RG2_SIGNING_STORE_FILE'))
+                storePassword secret('RG2_SIGNING_STORE_PASSWORD')
+                keyAlias secret('RG2_SIGNING_KEY_ALIAS')
+                keyPassword secret('RG2_SIGNING_KEY_PASSWORD')
+                storeType 'PKCS12'
+                enableV1Signing true
+                enableV2Signing true
+                enableV3Signing true
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (hasReleaseKey) signingConfig signingConfigs.release
+        }
+    }
+    sourceSets.main.assets.srcDir(layout.buildDirectory.dir('generated/rg2assets'))
+}
+
+tasks.register('syncWebAssets', Sync) {
+    from(rootProject.file('../data'))
+    into(layout.buildDirectory.dir('generated/rg2assets/www'))
+    doFirst {
+        if (!rootProject.file('../data/index.html').isFile()) {
+            throw new GradleException('The complete offline data/index.html is required.')
+        }
+    }
+}
+tasks.named('preBuild').configure { dependsOn 'syncWebAssets' }
+
+dependencies { implementation 'androidx.webkit:webkit:1.18.0' }

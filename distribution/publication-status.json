@@ -1,0 +1,69 @@
+{
+  "checkedOn": "2026-11-14",
+  "appId": "io.github.pro007m.rg2",
+  "version": "1.0.0",
+  "github": {
+    "status": "direct-download-channel",
+    "repository": "https://github.com/pro-007-m/rg2-mobile",
+    "releases": "https://github.com/pro-007-m/rg2-mobile/releases"
+  },
+  "stores": [
+    {
+      "name": "RuStore",
+      "fee": "free",
+      "status": "not-submitted",
+      "account": "not-created",
+      "lastObservedStep": "VK ID login",
+      "blocker": "Computer Use stopped on the VK ID URL by its access policy; owner login is required.",
+      "console": "https://console.rustore.ru/"
+    },
+    {
+      "name": "Uptodown",
+      "fee": "free",
+      "status": "not-submitted",
+      "account": "not-created",
+      "blocker": "Developer registration, verification and distributor agreement not completed."
+    },
+    {
+      "name": "AppGallery",
+      "fee": "free",
+      "status": "not-submitted",
+      "account": "not-created",
+      "blocker": "HUAWEI ID and owner identity verification required."
+    },
+    {
+      "name": "GetApps",
+      "fee": "free",
+      "status": "not-submitted",
+      "account": "not-created",
+      "blocker": "Identity and application ownership verification required."
+    },
+    {
+      "name": "Galaxy Store",
+      "fee": "free",
+      "status": "not-submitted",
+      "account": "not-created",
+      "blocker": "Commercial seller approval required, including for free applications."
+    },
+    {
+      "name": "F-Droid",
+      "fee": "free",
+      "status": "not-submitted",
+      "blocker": "Complete FLOSS licensing and source inclusion review required; current imported corpus is not fully cleared."
+    },
+    {
+      "name": "Google Play",
+      "fee": "paid developer registration",
+      "status": "outside-free-scope"
+    },
+    {
+      "name": "Amazon Appstore for Android phones",
+      "status": "closed-channel"
+    }
+  ],
+  "content": {
+    "status": "partial-source-license-verified",
+    "details": "Original RG2 Apache-2.0 source matches 442 of 505 teaching texts. Remaining text and all raster-conversion provenance require further confirmation; generated solver move sequences are a separate category."
+  },
+  "privacy": "Account email, credentials, verification codes and signing key are not included in this repository or release."
+}

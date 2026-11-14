@@ -1,0 +1,341 @@
+{
+  "passed": true,
+  "durationMs": 12036,
+  "targetPackage": "io.github.pro007m.rg2",
+  "api": 36,
+  "device": "sdk_gphone64_x86_64",
+  "checks": [
+    {
+      "name": "native-offline-permissions",
+      "passed": true,
+      "elapsedMs": 5,
+      "details": {
+        "internetPermission": false
+      }
+    },
+    {
+      "name": "boot",
+      "passed": true,
+      "elapsedMs": 2795,
+      "details": {
+        "ready": true,
+        "origin": "https:\/\/appassets.androidplatform.net",
+        "bootError": null,
+        "userAgent": "Mozilla\/5.0 (Linux; Android 16; sdk_gphone64_x86_64 Build\/BP22.250325.006; wv) AppleWebKit\/537.36 (KHTML, like Gecko) Version\/4.0 Chrome\/133.0.6943.137 Mobile Safari\/537.36"
+      }
+    },
+    {
+      "name": "catalog-and-local-resources",
+      "passed": true,
+      "elapsedMs": 4588,
+      "details": {
+        "phases": 60,
+        "items": 560,
+        "assetManifest": 2063,
+        "sampledImageSha256": [
+          "icons\/ic_icon_rg2.png",
+          "icons\/icon_1024.png",
+          "images\/main3x3\/adv_f2l\/adv_f2l_4_9.png",
+          "images\/main3x3\/pll\/pll_21.png",
+          "images\/main_other3x3\/brick\/brick_cube_4_1.png",
+          "splash\/icon_rg2.png"
+        ],
+        "modules": [
+          {
+            "path": "trainer-data.json",
+            "type": "application\/json",
+            "bytes": 134289
+          },
+          {
+            "path": "solver\/core.mjs",
+            "type": "text\/javascript",
+            "bytes": 16256
+          },
+          {
+            "path": "solver\/tool.mjs",
+            "type": "text\/javascript",
+            "bytes": 14193
+          },
+          {
+            "path": "solver\/worker.mjs",
+            "type": "text\/javascript",
+            "bytes": 7222
+          },
+          {
+            "path": "solver\/vendor\/three.module.js",
+            "type": "text\/javascript",
+            "bytes": 658900
+          }
+        ]
+      }
+    },
+    {
+      "name": "home-route",
+      "passed": true,
+      "elapsedMs": 4642,
+      "details": {
+        "route": {
+          "type": "phase",
+          "id": "MAIN3X3"
+        }
+      }
+    },
+    {
+      "name": "article-favorite",
+      "passed": true,
+      "elapsedMs": 5320,
+      "details": {
+        "id": "ADVANCED_2X2-0",
+        "title": "Вступление",
+        "images": 2,
+        "favorites": 1
+      }
+    },
+    {
+      "name": "native-back-route",
+      "passed": true,
+      "elapsedMs": 5801,
+      "details": {
+        "handled": true,
+        "route": {
+          "type": "phase",
+          "id": "MAIN3X3"
+        }
+      }
+    },
+    {
+      "name": "tools-route",
+      "passed": true,
+      "elapsedMs": 6577,
+      "details": {
+        "route": {
+          "type": "settings"
+        },
+        "theme": "graphite",
+        "storedTheme": "graphite"
+      }
+    },
+    {
+      "name": "localStorage-survives-reload",
+      "passed": true,
+      "elapsedMs": 7388,
+      "details": {
+        "theme": "graphite",
+        "favorite": "ADVANCED_2X2-0",
+        "reloaded": true
+      }
+    },
+    {
+      "name": "solver-WebGL2",
+      "passed": true,
+      "elapsedMs": 8171,
+      "details": {
+        "canvas": {
+          "width": 677,
+          "height": 668,
+          "cssWidth": 386.66668701171875,
+          "cssHeight": 381.5
+        },
+        "renderer": {
+          "theme": "graphite",
+          "neon": false,
+          "bloomEnabled": false,
+          "settings": {
+            "contrast": 100,
+            "saturation": 100,
+            "brightness": 100,
+            "gamma": 1,
+            "sharpness": 0,
+            "glow": 40
+          },
+          "lights": 0,
+          "solidBodies": 26,
+          "opaqueCaps": true,
+          "caps": 54,
+          "geometryVariants": 9,
+          "theta": 0.72,
+          "phi": 0.94,
+          "distance": 8.8,
+          "state": [
+            4,
+            3,
+            4,
+            0,
+            3,
+            1,
+            4,
+            1,
+            5,
+            1,
+            2,
+            2,
+            4,
+            1,
+            5,
+            0,
+            1,
+            3,
+            5,
+            3,
+            0,
+            5,
+            5,
+            5,
+            3,
+            0,
+            2,
+            1,
+            1,
+            1,
+            2,
+            0,
+            5,
+            3,
+            4,
+            1,
+            2,
+            4,
+            0,
+            0,
+            4,
+            0,
+            4,
+            4,
+            5,
+            0,
+            2,
+            3,
+            3,
+            2,
+            2,
+            2,
+            3,
+            5
+          ]
+        }
+      }
+    },
+    {
+      "name": "random-scramble",
+      "passed": true,
+      "elapsedMs": 8652,
+      "details": {
+        "moves": [
+          "R",
+          "U'",
+          "L2",
+          "U2",
+          "L2",
+          "F'",
+          "D'",
+          "R'",
+          "D",
+          "F'",
+          "D'",
+          "L2",
+          "B2",
+          "R",
+          "B2",
+          "R'",
+          "D2",
+          "L'",
+          "F2",
+          "D"
+        ],
+        "validInput": true,
+        "noAutoSolve": true
+      }
+    },
+    {
+      "name": "worker-candidate-and-playback",
+      "passed": true,
+      "elapsedMs": 8955,
+      "details": {
+        "candidates": 24,
+        "chosen": {
+          "id": "0:cross:R' F2 U R2 L2",
+          "moves": [
+            "R'",
+            "F2",
+            "U",
+            "R2",
+            "L2"
+          ]
+        },
+        "verifiedCross": true
+      }
+    },
+    {
+      "name": "paused-state-replays-exactly",
+      "passed": true,
+      "elapsedMs": 10026,
+      "details": {
+        "executed": [
+          "R'",
+          "F2",
+          "U"
+        ],
+        "queue": 2,
+        "stage": "CROSS",
+        "paused": true,
+        "validState": true,
+        "rendererMatches": true,
+        "traceSegments": 1
+      }
+    },
+    {
+      "name": "landscape-layout",
+      "passed": true,
+      "elapsedMs": 10647,
+      "details": {
+        "landscape": true,
+        "width": 915,
+        "height": 364,
+        "canvasWidth": 553.9404907226562,
+        "orientationRequested": true,
+        "rotationObserved": true
+      }
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "01-home-portrait",
+      "path": "\/storage\/emulated\/0\/Android\/data\/io.github.pro007m.rg2\/files\/qa\/01-home-portrait.png",
+      "width": 1080,
+      "height": 2400
+    },
+    {
+      "name": "02-article-portrait",
+      "path": "\/storage\/emulated\/0\/Android\/data\/io.github.pro007m.rg2\/files\/qa\/02-article-portrait.png",
+      "width": 1080,
+      "height": 2400
+    },
+    {
+      "name": "03-settings-graphite-portrait",
+      "path": "\/storage\/emulated\/0\/Android\/data\/io.github.pro007m.rg2\/files\/qa\/03-settings-graphite-portrait.png",
+      "width": 1080,
+      "height": 2400
+    },
+    {
+      "name": "04-solver-portrait",
+      "path": "\/storage\/emulated\/0\/Android\/data\/io.github.pro007m.rg2\/files\/qa\/04-solver-portrait.png",
+      "width": 1080,
+      "height": 2400
+    },
+    {
+      "name": "05-solver-landscape",
+      "path": "\/storage\/emulated\/0\/Android\/data\/io.github.pro007m.rg2\/files\/qa\/05-solver-landscape.png",
+      "width": 2400,
+      "height": 1080
+    },
+    {
+      "name": "06-solver-portrait-paused",
+      "path": "\/storage\/emulated\/0\/Android\/data\/io.github.pro007m.rg2\/files\/qa\/06-solver-portrait-paused.png",
+      "width": 1080,
+      "height": 2400
+    }
+  ],
+  "storageRestored": true,
+  "offlineEvidence": "No INTERNET permission; only APK-local same-origin resource requests",
+  "error": null
+}

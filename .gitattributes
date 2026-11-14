@@ -1,0 +1,6 @@
+# Preserve the imported offline corpus and upstream license bytes on every OS.
+* -text
+*.png binary
+*.jpg binary
+*.gif binary
+*.jar binary
