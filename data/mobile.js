@@ -1,7 +1,7 @@
 /* Native Android integration. The library and solver stay fully local. */
 (() => {
   'use strict';
-  const VERSION='1.2.0', RELEASES='https://github.com/pro-007-m/twistforge-mobile/releases/latest';
+  const VERSION='1.2.1', RELEASES='https://github.com/pro-007-m/twistforge-mobile/releases/latest';
   const $=selector=>document.querySelector(selector);
   let nativeInfo=null,menuObserver=null,initialized=false;
   function post(type,values={}) {

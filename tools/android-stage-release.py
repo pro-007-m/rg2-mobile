@@ -215,6 +215,13 @@ def stage(root, qa_report):
                 qa.get('virtualPuzzlesRequested') is True and qa.get('virtualDatabaseRestored') is True, 'Required virtual puzzle QA is missing')
         if review:
             require(qa.get('reviewModeRequested') is True and qa.get('reviewDatabaseRestored') is True, 'Required review mode QA is missing')
+    if tuple(map(int, version.split('.'))) >= (1, 2, 1):
+        icon_qa = qa.get('launcherIcons', {})
+        require(qa.get('launcherIconsRequested') is True and icon_qa.get('passed') is True and
+                icon_qa.get('actualInstalledAdaptiveResource') is True and icon_qa.get('backgroundCount') == 1 and
+                icon_qa.get('foregroundCornersTransparent') is True and icon_qa.get('circleClippedPixels') == 0 and
+                icon_qa.get('squircleClippedPixels') == 0 and icon_qa.get('monochromeAvailable') is True,
+                'Required installed launcher icon QA is missing')
     target, existing, old_bundles = inspect_existing(root, version)
     require(not git_bytes(root, ['status', '--porcelain']).strip(), 'Commit release sources before staging')
     revision, source = release_source(root, existing)

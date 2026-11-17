@@ -21,8 +21,8 @@ android {
         applicationId 'io.github.pro007m.rg2'
         minSdk 24
         targetSdk 36
-        versionCode 4
-        versionName '1.2.0'
+        versionCode 5
+        versionName '1.2.1'
         testInstrumentationRunner 'io.github.pro007m.rg2.OfflineSmokeInstrumentation'
     }
     buildFeatures { buildConfig true }

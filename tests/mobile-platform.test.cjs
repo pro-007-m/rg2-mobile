@@ -23,7 +23,7 @@ test('Android keeps all library data, exposes mobile backup and has no desktop u
   const d=a.w.document;
   assert.equal(d.querySelectorAll('input[name=theme]').length,3);
   assert.ok(d.querySelector('#mobile-export'));assert.ok(d.querySelector('#mobile-import'));assert.ok(d.querySelector('#mobile-awake').checked);
-  assert.ok(d.querySelector('#app-version').textContent.includes('Android 1.2.0'));
+  assert.ok(d.querySelector('#app-version').textContent.includes('Android 1.2.1'));
   assert.equal(d.querySelector('#update-install'),null);
   assert.ok(!a.messages.some(m=>m.type.startsWith('update-')));
  }finally{a.w.dispatchEvent(new a.w.Event('pagehide'));a.dom.window.close();}

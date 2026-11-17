@@ -5,7 +5,7 @@
   const icon = (name, cls = '') => `<svg class="${esc(cls)}" aria-hidden="true"><use href="#i-${esc(name)}"/></svg>`;
   const read = (key, fallback) => { try { const value=localStorage.getItem(key); return value === null ? fallback : JSON.parse(value); } catch { return fallback; } };
   const write = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch {} };
-  const APP_VERSION='1.2.0';
+  const APP_VERSION='1.2.1';
   const UPDATE_RELEASE_URL='https://github.com/pro-007-m/twistforge-mobile/releases/latest';
   const updateState={status:'idle',currentVersion:APP_VERSION};
   function refreshUpdateControls(){const label=$('#app-version');if(label)label.textContent='TwistForge · Android '+APP_VERSION;}

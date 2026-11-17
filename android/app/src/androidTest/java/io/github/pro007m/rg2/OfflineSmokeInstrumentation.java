@@ -58,6 +58,8 @@ public final class OfflineSmokeInstrumentation extends Instrumentation {
     private boolean reviewMode;
     private JSONObject reviewDatabaseBackup;
     private boolean reviewDatabaseRestored;
+    private boolean launcherIcons;
+    private JSONObject launcherIconEvidence;
 
     @Override public void onCreate(Bundle arguments) {
         super.onCreate(arguments);
@@ -69,6 +71,9 @@ public final class OfflineSmokeInstrumentation extends Instrumentation {
             String reviewArgument = arguments.getString("reviewMode", "false");
             require("true".equals(reviewArgument) || "false".equals(reviewArgument), "reviewMode must be true or false");
             reviewMode = "true".equals(reviewArgument);
+            String iconArgument = arguments.getString("launcherIcons", "false");
+            require("true".equals(iconArgument) || "false".equals(iconArgument), "launcherIcons must be true or false");
+            launcherIcons = "true".equals(iconArgument);
             long maximum = reviewMode ? 240000 : virtualPuzzles ? 180000 : 90000;
             try { limit = Math.max(40000, Math.min(maximum, Long.parseLong(arguments.getString("timeoutMs", String.valueOf(maximum))))); }
             catch (NumberFormatException ignored) { }
@@ -86,6 +91,7 @@ public final class OfflineSmokeInstrumentation extends Instrumentation {
             output = new File(getTargetContext().getExternalFilesDir(null), "qa");
             require(output.isDirectory() || output.mkdirs(), "Cannot create private QA output directory");
             installedTarget = InstalledTarget.inspect(getTargetContext(), getContext(), testArguments);
+            if (launcherIcons) launcherIconEvidence = LauncherIconVerification.verify(getTargetContext(), output, screenshots);
             PackageInfo info = getTargetContext().getPackageManager().getPackageInfo(PACKAGE, PackageManager.GET_PERMISSIONS);
             targetVersionName = info.versionName;
             targetVersionCode = android.os.Build.VERSION.SDK_INT >= 28 ? info.getLongVersionCode() : info.versionCode;
@@ -274,6 +280,7 @@ public final class OfflineSmokeInstrumentation extends Instrumentation {
                 .put("testedBuildType", installedTarget == null ? "unknown" : installedTarget.optString("buildType", "unknown"))
                 .put("virtualPuzzlesRequested", virtualPuzzles).put("virtualDatabaseRestored", virtualDatabaseRestored)
                 .put("reviewModeRequested", reviewMode).put("reviewDatabaseRestored", reviewDatabaseRestored)
+                .put("launcherIconsRequested", launcherIcons).put("launcherIcons", launcherIconEvidence == null ? JSONObject.NULL : launcherIconEvidence)
                 .put("checks", checks).put("screenshots", screenshots).put("storageRestored", restored)
                 .put("offlineEvidence", "No INTERNET permission; only APK-local same-origin resource requests")
                 .put("error", failure == null ? JSONObject.NULL : failure.toString());

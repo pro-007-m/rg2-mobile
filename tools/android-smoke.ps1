@@ -11,6 +11,7 @@ param(
     [string]$ExpectedSignerSha256 = '',
     [switch]$VirtualPuzzles,
     [switch]$ReviewMode,
+    [switch]$LauncherIcons,
     [string]$SdkDirectory = '',
     [string]$JavaDirectory = ''
 )
@@ -103,10 +104,12 @@ try {
     $requireRelease = ($BuildType -eq 'Release').ToString().ToLowerInvariant()
     $virtualFlag = if ($VirtualPuzzles) { 'true' } else { 'false' }
     $reviewFlag = if ($ReviewMode) { 'true' } else { 'false' }
+    $iconFlag = if ($LauncherIcons) { 'true' } else { 'false' }
     $smokeTimeout = if ($ReviewMode) { '240000' } elseif ($VirtualPuzzles) { '180000' } else { '90000' }
     $report.virtualPuzzlesRequired = [bool]$VirtualPuzzles
     $report.reviewModeRequired = [bool]$ReviewMode
-    $result = Adb-Command $stage @('shell','am','instrument','-w','-e','timeoutMs',$smokeTimeout,'-e','virtualPuzzles',$virtualFlag,'-e','reviewMode',$reviewFlag,'-e','requireRelease',$requireRelease,
+    $report.launcherIconsRequired = [bool]$LauncherIcons
+    $result = Adb-Command $stage @('shell','am','instrument','-w','-e','timeoutMs',$smokeTimeout,'-e','virtualPuzzles',$virtualFlag,'-e','reviewMode',$reviewFlag,'-e','launcherIcons',$iconFlag,'-e','requireRelease',$requireRelease,
         '-e','expectedApkSha256',$actualHash,'-e','expectedFixtureSha256',$report.testApkSha256,'-e','expectedSignerSha256',$ExpectedSignerSha256,'-e','expectedVersionName',$ExpectedVersionName,
         '-e','expectedVersionCode',[string]$ExpectedVersionCode,'io.github.pro007m.rg2.test/io.github.pro007m.rg2.OfflineSmokeInstrumentation')
     Require-Success $result 'Instrumentation command failed.'
@@ -127,6 +130,7 @@ try {
             if (@($runtime.checks | Where-Object { $_.name -eq $required -and $_.passed }).Count -ne 1) { throw ('Required review verification is missing: ' + $required) }
         }
     }
+    if ($LauncherIcons -and (!$runtime.launcherIconsRequested -or !$runtime.launcherIcons.passed)) { throw 'Installed native launcher icon mask/themed verification did not pass.' }
     $identity = $runtime.installedTarget
     if (!$identity -or $identity.installedApkSha256 -ne $actualHash -or $identity.fixtureApkSha256 -ne $report.testApkSha256 -or $identity.signerSha256.Count -ne 1 -or
         $identity.signerSha256[0] -ne $ExpectedSignerSha256 -or $runtime.versionName -ne $ExpectedVersionName -or $runtime.versionCode -ne $ExpectedVersionCode) { throw 'Runtime identity does not match the frozen target APK.' }

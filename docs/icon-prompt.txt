@@ -1,0 +1,10 @@
+TwistForge icon correction, 2026-11-17
+Mode: built-in image_gen; edit existing artwork; transparent_background=true.
+Project master: artwork/cube-mark.png; also used as data/app-icon.png.
+Windows ICO and Android launcher resources are derived from this transparent foreground.
+
+First prompt:
+Use case: background-extraction. Edit target: the supplied existing TwistForge app icon. Remove ONLY the entire graphite rounded-square backing tile, its border, cast shadow, and all surrounding background. Keep the same single polished isometric 3x3 cube with precisely 3 rows and 3 columns of tiles per visible face, warm ivory top, sage/forest green left, periwinkle blue right; preserve its orientation, identity, proportions, lighting, bevels, and crisp seams. Output just that cube cut out on genuinely transparent alpha, with no enclosing square/circle/tile/frame whatsoever and no separate drop shadow beneath it. Center and enlarge the isolated cube to occupy about 88 percent of the square canvas height with small even outer transparent padding; do not clip any cube corner. Do not redesign the cube or add anything. No text, no logos, no watermark, no fake checkerboard drawn into the pixels. This is the reusable transparent foreground for Windows ICO and Android adaptive icons.
+
+Final cleanup prompt:
+Precise alpha-mask cleanup only. Keep the supplied isolated isometric 3x3 cube exactly the same: same composition, ivory top, green left, blue right, 3x3 tiles, perspective, materials and lighting. Remove every isolated colored speck and pixel island outside the cube, especially red/yellow dots above it and green flecks along its outside margin. Make the surrounding alpha completely empty. Clean the contour of the cube so there is no colored fringe, halo or noise outside its silhouette. Do not add any backing tile, square, circle, frame or shadow. Do not change the cube or its placement/scale. Output the same cube with a clean anti-aliased transparent silhouette suitable for a small production application icon.

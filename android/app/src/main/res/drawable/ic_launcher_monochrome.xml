@@ -1,0 +1,6 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <!-- Three recognizable faces, inside the colored cube's central safe zone. -->
+    <path android:fillColor="#FFFFFFFF" android:pathData="M54,22 L80.7,37.5 L54,53 L27.3,37.5 Z M26.3,39.3 L53,54.8 L53,84.4 L26.3,69 Z M55,54.8 L81.7,39.3 L81.7,69 L55,84.4 Z" />
+</vector>
