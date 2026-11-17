@@ -254,7 +254,7 @@ def stage(root, qa_report):
         if path.is_file():
             tree.update(path.relative_to(root / 'data').as_posix().encode('utf-8') + b'\0')
             tree.update(bytes.fromhex(sha256(path)) + b'\n')
-    manifest = {'schemaVersion': 1, 'application': 'RG2 Mobile', 'applicationId': 'io.github.pro007m.rg2', 'version': version,
+    manifest = {'schemaVersion': 1, 'application': 'TwistForge Mobile', 'applicationId': 'io.github.pro007m.rg2', 'version': version,
                 'versionCode': code, 'sourceCommit': revision, 'minSdk': 24, 'targetSdk': 36,
                 'createdUtc': existing.get('createdUtc') if existing else datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
                 'signing': {'certificateSha256': pin, 'apkVerified': True},
