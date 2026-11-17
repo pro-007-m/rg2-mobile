@@ -5,11 +5,11 @@
   const icon = (name, cls = '') => `<svg class="${esc(cls)}" aria-hidden="true"><use href="#i-${esc(name)}"/></svg>`;
   const read = (key, fallback) => { try { const value=localStorage.getItem(key); return value === null ? fallback : JSON.parse(value); } catch { return fallback; } };
   const write = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch {} };
-  const APP_VERSION='1.1.0';
-  const UPDATE_RELEASE_URL='https://github.com/pro-007-m/rg2-mobile/releases/latest';
+  const APP_VERSION='1.2.0';
+  const UPDATE_RELEASE_URL='https://github.com/pro-007-m/twistforge-mobile/releases/latest';
   const updateState={status:'idle',currentVersion:APP_VERSION};
-  function refreshUpdateControls(){const label=$('#app-version');if(label)label.textContent='RG2 · Android '+APP_VERSION;}
-  function updateControls(){return window.RG2Platform?.updates?.() || `<section class="settings-block app-updates"><h2>Обновления</h2><p>RG2 · Android ${APP_VERSION}</p><p>Обновляйте приложение через его магазин или установите новый APK поверх старого.</p><a class="app-release-link" href="${UPDATE_RELEASE_URL}" target="_blank" rel="noopener noreferrer">Открыть выпуски для Android</a></section>`;}
+  function refreshUpdateControls(){const label=$('#app-version');if(label)label.textContent='TwistForge · Android '+APP_VERSION;}
+  function updateControls(){return window.RG2Platform?.updates?.() || `<section class="settings-block app-updates"><h2>Обновления</h2><p>TwistForge · Android ${APP_VERSION}</p><p>Обновляйте приложение через его магазин или установите новый APK поверх старого.</p><a class="app-release-link" href="${UPDATE_RELEASE_URL}" target="_blank" rel="noopener noreferrer">Открыть выпуски для Android</a></section>`;}
   const MODEL_IMAGE_KEY='rg2.model.image.v1';
   const MODEL_IMAGE_FIELDS={
     contrast:{label:'Контраст',min:70,max:150,step:1,default:100},
@@ -322,6 +322,22 @@
     container.dataset.algorithmFocusKey=`${route?.type || 'item'}:${route?.id || ''}`;
     applyAlgorithmFocus(container);
   }
+  function lessonPath(id) {
+    const item=items.get(String(id));return item?[...phaseTrail(item.phaseId).map(p=>p.title),item.title].join(' › '):'';
+  }
+  function applyArticlePreview({article,fragment,html,original=false}={}) {
+    const current=items.get(route?.id),host=$('#article-body');
+    if(route?.type!=='item'||!current||!host||article?.id!==current.id)return false;
+    const scroll=$('#workspace').scrollTop;host.replaceChildren();
+    if(original)prepareArticle(host,current.html||'');
+    else {
+      if(fragment)host.appendChild(document.importNode(fragment,true));
+      else host.appendChild(sanitizeArticle(html||''));
+      window.RG2Algorithms.prepare(host,{icon});
+      host.dataset.algorithmFocusKey='item:'+current.id;applyAlgorithmFocus(host);
+    }
+    $('#workspace').scrollTop=scroll;return true;
+  }
   function applyAlgorithmFocus(container) {
     const blocks=[...container.querySelectorAll('.algorithm-block')];
     const saved=focusedAlgorithms[container.dataset.algorithmFocusKey];
@@ -408,7 +424,7 @@
     setBreadcrumbs([{title:'Настройки'}]);
     $('#content').innerHTML=`<div class="settings-layout"><div class="page-heading"><div class="eyebrow">Рабочее пространство</div><h1 class="page-title">Настройки</h1></div><section class="settings-block"><h2>Оформление</h2><p>Выберите свой стиль или доверьте выбор системе.</p><div class="theme-options">${[
       ['system','Как в системе','По умолчанию'],['atelier','Atelier','Светлая · тёплая и спокойная'],['graphite','Graphite','Тёмная · графит и синий']
-    ].map(([value,title,subtitle])=>`<label class="theme-choice"><span class="theme-swatch ${value}" aria-hidden="true"></span><input type="radio" name="theme" value="${value}" ${preference===value?'checked':''}><strong>${title}</strong><small>${subtitle}</small></label>`).join('')}</div><div class="settings-note" id="theme-status"></div><label class="settings-row model-neon-setting" id="model-neon-setting" for="model-neon-toggle" hidden><span><strong id="model-neon-label">Неоновое свечение деталей</strong><small id="model-neon-help">Цветные элементы 3D-куба светятся в тёмной теме.</small></span><input type="checkbox" id="model-neon-toggle" aria-labelledby="model-neon-label" aria-describedby="model-neon-help"></label>${modelImageControls()}</section><details class="settings-block"><summary>Физическая клавиатура</summary><h2>Горячие клавиши</h2><div class="keyboard-grid"><div class="keyboard-item"><span>Поиск по библиотеке</span><kbd>/</kbd></div><div class="keyboard-item"><span>Назад</span><kbd>Alt + ←</kbd></div><div class="keyboard-item"><span>Вперёд</span><kbd>Alt + →</kbd></div><div class="keyboard-item"><span>Закрыть изображение / вернуться</span><kbd>Esc</kbd></div></div></details>${window.RG2Platform?.mobileSettings?.() || ''}<section class="settings-block"><h2>О приложении</h2><p id="app-version">RG2 · Android ${esc(updateState.currentVersion)}</p><div class="settings-row"><span><strong>Библиотека доступна без интернета</strong><small>Видео и внешние ссылки открываются в браузере.</small></span>${icon('book')}</div><div class="settings-row"><span><strong>Избранное и настройки сохраняются на этом устройстве</strong><small>Можно продолжить с того раздела, на котором вы остановились.</small></span>${icon('star')}</div></section>${updateControls()}</div>`;
+    ].map(([value,title,subtitle])=>`<label class="theme-choice"><span class="theme-swatch ${value}" aria-hidden="true"></span><input type="radio" name="theme" value="${value}" ${preference===value?'checked':''}><strong>${title}</strong><small>${subtitle}</small></label>`).join('')}</div><div class="settings-note" id="theme-status"></div><label class="settings-row model-neon-setting" id="model-neon-setting" for="model-neon-toggle" hidden><span><strong id="model-neon-label">Неоновое свечение деталей</strong><small id="model-neon-help">Цветные элементы 3D-куба светятся в тёмной теме.</small></span><input type="checkbox" id="model-neon-toggle" aria-labelledby="model-neon-label" aria-describedby="model-neon-help"></label>${modelImageControls()}</section><details class="settings-block"><summary>Физическая клавиатура</summary><h2>Горячие клавиши</h2><div class="keyboard-grid"><div class="keyboard-item"><span>Поиск по библиотеке</span><kbd>/</kbd></div><div class="keyboard-item"><span>Назад</span><kbd>Alt + ←</kbd></div><div class="keyboard-item"><span>Вперёд</span><kbd>Alt + →</kbd></div><div class="keyboard-item"><span>Закрыть изображение / вернуться</span><kbd>Esc</kbd></div></div></details>${window.RG2Platform?.mobileSettings?.() || ''}<section class="settings-block"><h2>О приложении</h2><button type="button" class="build-number" id="app-version" aria-label="Версия и номер сборки">TwistForge · Android ${esc(updateState.currentVersion)}</button><div class="settings-row"><span><strong>Библиотека доступна без интернета</strong><small>Видео и внешние ссылки открываются в браузере.</small></span>${icon('book')}</div><div class="settings-row"><span><strong>Избранное и настройки сохраняются на этом устройстве</strong><small>Можно продолжить с того раздела, на котором вы остановились.</small></span>${icon('star')}</div></section>${updateControls()}</div>`;
     applyTheme();refreshUpdateControls();mountModelImagePreview();
   }
   function renderTools() {
@@ -463,7 +479,7 @@
   function render() {
     if(typeof toolDisposer==='function'){toolDisposer();toolDisposer=null;}
     renderNavigation();$('#global-search').value=route.type==='search'?route.q || '':'';
-    document.title='RG2 · Android';
+    document.title='TwistForge · Android';
     ({phase:renderPhase,item:renderArticle,favorites:renderFavorites,search:renderSearch,settings:renderSettings,tools:renderTools,tool:renderTool,notation:renderNotation,extras:renderExtras}[route.type] || renderMissing)();
     document.dispatchEvent(new CustomEvent('rg2:navigation',{detail:{route:{...route}}}));
     document.querySelectorAll('#content img').forEach(image=>image.addEventListener('error',()=>{image.dataset.loadError='true';image.alt='Не удалось открыть схему';},{once:true}));
@@ -488,7 +504,9 @@
     }else toast('Этот переход сейчас недоступен.');
   }
   document.addEventListener('click',event=>{
+    if(event.defaultPrevented)return;
     const button=event.target.closest('button,a,label');if(!button)return;
+    if(button.dataset.tfLessonId){event.preventDefault();openItem(button.dataset.tfLessonId);return;}
     if(button.id==='model-image-reset'){resetModelImageSettings();return;}
     if(button.matches('[data-home]')){event.preventDefault();navigate(defaultRoute());return;}
     if(button.dataset.route){event.preventDefault();try{navigate(JSON.parse(button.dataset.route));}catch{}return;}
@@ -501,6 +519,7 @@
     if(button.dataset.rg2Link){event.preventDefault();handleRG2Link(button.dataset.rg2Link);return;}
   });
   document.addEventListener('click',event=>{
+    if(event.defaultPrevented||document.documentElement.dataset.reviewMode==='on')return;
     const image=event.target.closest('img[data-zoom]');if(!image)return;
     $('#zoom-image').src=image.src;$('#zoom-image').alt=image.alt;$('#image-dialog').showModal();
   });
@@ -522,6 +541,7 @@
     if(event.altKey && event.key==='ArrowLeft'){event.preventDefault();if(historyIndex>0)history.back();return;}
     if(event.altKey && event.key==='ArrowRight'){event.preventDefault();if(historyIndex<historyMax)history.forward();return;}
     if(event.key==='Escape'){
+      if(window.TwistForgeReview?.handleBack?.()){event.preventDefault();return;}
       if($('#image-dialog').open)return;
       if($('#sidebar').classList.contains('expanded')){$('#sidebar').classList.remove('expanded');return;}
       if(editable){document.activeElement.blur();return;}
@@ -533,7 +553,7 @@
   window.addEventListener('popstate',event=>{
     if(!catalog)return;route=normalizeRoute(event.state?.route || routeFromHash() || defaultRoute());historyIndex=event.state?.index ?? 0;write('rg2.lastRoute',route);render();$('#workspace').scrollTop=0;
   });
-  window.RG2App={ready,navigate,openItem,setTheme,setModelNeon,setModelImageSettings,toast,get catalog(){return catalog;},get trainerData(){return trainerData;},get state(){return {route,themePreference:preference,effectiveTheme:document.documentElement.dataset.theme,modelNeonPreference:modelNeon,modelNeonActive:document.documentElement.dataset.modelNeon==='on',modelImageSettings:{...modelImageSettings},updateStatus:{...updateState},favorites:[...favorites],historyIndex,historyMax,bootError};},get items(){return items;},get phases(){return phases;},sanitizeArticle,handleRG2Link};
+  window.RG2App={ready,navigate,openItem,setTheme,setModelNeon,setModelImageSettings,toast,get catalog(){return catalog;},get trainerData(){return trainerData;},get state(){return {route,themePreference:preference,effectiveTheme:document.documentElement.dataset.theme,modelNeonPreference:modelNeon,modelNeonActive:document.documentElement.dataset.modelNeon==='on',modelImageSettings:{...modelImageSettings},updateStatus:{...updateState},favorites:[...favorites],historyIndex,historyMax,bootError};},get items(){return items;},get phases(){return phases;},sanitizeArticle,handleRG2Link,lessonPath,applyArticlePreview,get version(){return APP_VERSION;}};
   async function initialize() {
     try {
       const [catalogResult,trainerResult]=await Promise.allSettled([fetch('catalog.json').then(response=>{if(!response.ok)throw new Error('catalog '+response.status);return response.json();}),fetch('trainer-data.json').then(response=>response.ok?response.json():null)]);
@@ -545,7 +565,7 @@
       history.replaceState({rg2:true,route,index:0},'',hashFor(route));render();resolveReady(true);
     }catch(error){
       bootError=String(error);console.error('RG2 library could not load',error);
-      $('#content').innerHTML=`<div class="error-state"><div class="page-heading"><div class="eyebrow">RG2 · Android</div><h1 class="page-title">Не удалось открыть библиотеку</h1><p>Закройте приложение и откройте его снова. Если это не поможет, восстановите папку приложения из исходного архива.</p></div><button class="action-button" id="retry-load">Попробовать снова ${icon('arrow')}</button></div>`;
+      $('#content').innerHTML=`<div class="error-state"><div class="page-heading"><div class="eyebrow">TwistForge · Android</div><h1 class="page-title">Не удалось открыть библиотеку</h1><p>Закройте приложение и откройте его снова. Если это не поможет, восстановите папку приложения из исходного архива.</p></div><button class="action-button" id="retry-load">Попробовать снова ${icon('arrow')}</button></div>`;
       $('#retry-load').addEventListener('click',()=>location.reload());resolveReady(false);
     }
   }

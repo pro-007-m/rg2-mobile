@@ -10,6 +10,7 @@ param(
     [ValidateSet('Release','Debug')][string]$BuildType = 'Release',
     [string]$ExpectedSignerSha256 = '',
     [switch]$VirtualPuzzles,
+    [switch]$ReviewMode,
     [string]$SdkDirectory = '',
     [string]$JavaDirectory = ''
 )
@@ -33,6 +34,7 @@ $savedJava = $env:JAVA_HOME
 $failure = $null
 $stage = 'verify-input'
 $expectedCheckCount = if ($VirtualPuzzles) { 18 } else { 13 }
+if ($ReviewMode) { $expectedCheckCount += 3 }
 function Capture-Command([string]$Name, [string]$Program, [string[]]$CommandArguments) {
     $lines = @(& $Program @CommandArguments 2>&1)
     $code = $LASTEXITCODE
@@ -100,9 +102,11 @@ try {
     $stage = 'instrumentation'
     $requireRelease = ($BuildType -eq 'Release').ToString().ToLowerInvariant()
     $virtualFlag = if ($VirtualPuzzles) { 'true' } else { 'false' }
-    $smokeTimeout = if ($VirtualPuzzles) { '180000' } else { '90000' }
+    $reviewFlag = if ($ReviewMode) { 'true' } else { 'false' }
+    $smokeTimeout = if ($ReviewMode) { '240000' } elseif ($VirtualPuzzles) { '180000' } else { '90000' }
     $report.virtualPuzzlesRequired = [bool]$VirtualPuzzles
-    $result = Adb-Command $stage @('shell','am','instrument','-w','-e','timeoutMs',$smokeTimeout,'-e','virtualPuzzles',$virtualFlag,'-e','requireRelease',$requireRelease,
+    $report.reviewModeRequired = [bool]$ReviewMode
+    $result = Adb-Command $stage @('shell','am','instrument','-w','-e','timeoutMs',$smokeTimeout,'-e','virtualPuzzles',$virtualFlag,'-e','reviewMode',$reviewFlag,'-e','requireRelease',$requireRelease,
         '-e','expectedApkSha256',$actualHash,'-e','expectedFixtureSha256',$report.testApkSha256,'-e','expectedSignerSha256',$ExpectedSignerSha256,'-e','expectedVersionName',$ExpectedVersionName,
         '-e','expectedVersionCode',[string]$ExpectedVersionCode,'io.github.pro007m.rg2.test/io.github.pro007m.rg2.OfflineSmokeInstrumentation')
     Require-Success $result 'Instrumentation command failed.'
@@ -115,6 +119,12 @@ try {
     if ($VirtualPuzzles) {
         foreach ($required in @('virtual-game-boot','virtual-nxn50','virtual-polyhedra','virtual-ortega-worker','virtual-native-touch-and-restore')) {
             if (@($runtime.checks | Where-Object { $_.name -eq $required -and $_.passed }).Count -ne 1) { throw ('Required virtual-puzzle verification is missing: ' + $required) }
+        }
+    }
+    if ($ReviewMode) {
+        if (!$runtime.reviewModeRequested -or !$runtime.reviewDatabaseRestored) { throw 'Review QA did not restore its private workspace snapshot.' }
+        foreach ($required in @('review-developer-unlock','review-edit-preview-persistence','review-native-document-roundtrip')) {
+            if (@($runtime.checks | Where-Object { $_.name -eq $required -and $_.passed }).Count -ne 1) { throw ('Required review verification is missing: ' + $required) }
         }
     }
     $identity = $runtime.installedTarget

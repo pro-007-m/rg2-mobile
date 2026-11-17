@@ -101,7 +101,7 @@ def inspect_existing(root, version):
     require(manifest.get('version') == version and isinstance(manifest.get('files'), list), 'Invalid existing release manifest')
     seen = set()
     private = owned(root, root / 'artifacts/store-upload' / version)
-    public_artifacts = {f'RG2-Mobile-{version}.apk', f'RG2-Mobile-{version}-Source.zip'}
+    public_artifacts = {f'{policy.artifact_base(version)}.apk', f'{policy.artifact_base(version)}-Source.zip'}
     for item in manifest['files']:
         name = item.get('name', '')
         require(name not in seen and (name in public_artifacts or Path(name).suffix.lower() == '.aab'),
@@ -109,10 +109,10 @@ def inspect_existing(root, version):
         seen.add(name)
         directory = private if Path(name).suffix.lower() == '.aab' and not (target / name).exists() else target
         verify(root, directory, item)
-    require(f'RG2-Mobile-{version}.apk' in seen, 'Existing manifest does not pin its APK')
+    require(f'{policy.artifact_base(version)}.apk' in seen, 'Existing manifest does not pin its APK')
     require(all(not (target / name).exists() or name in seen for name in public_artifacts), 'Unpinned frozen public artifact')
     if tuple(map(int, version.split('.'))) >= (1, 1, 0):
-        require(f'RG2-Mobile-{version}-Source.zip' in seen, 'This GPL-enabled release requires its matching source archive')
+        require(f'{policy.artifact_base(version)}-Source.zip' in seen, 'This GPL-enabled release requires its matching source archive')
     return target, manifest, bundles
 
 
@@ -140,7 +140,7 @@ def public_projection(manifest):
     result = json.loads(json.dumps(manifest))
     version = policy.valid_version(result['version'])
     result['files'] = [item for item in result['files'] if item['name'] in
-                       {f'RG2-Mobile-{version}.apk', f'RG2-Mobile-{version}-Source.zip'}]
+                       {f'{policy.artifact_base(version)}.apk', f'{policy.artifact_base(version)}-Source.zip'}]
     for section in ('signing', 'offlineAssets'):
         result[section] = {key: value for key, value in result.get(section, {}).items() if 'aab' not in key.lower()}
     policy.no_bundle_metadata(result)
@@ -152,8 +152,8 @@ def finish_public(root, version, manifest, bundles, metadata=None):
     projected = public_projection(manifest)
     for item in projected['files']:
         verify(root, target, item)
-    require(any(item['name'] == f'RG2-Mobile-{version}.apk' for item in projected['files']), 'Public APK is missing')
-    source = target / f'RG2-Mobile-{version}-Source.zip'
+    require(any(item['name'] == f'{policy.artifact_base(version)}.apk' for item in projected['files']), 'Public APK is missing')
+    source = target / f'{policy.artifact_base(version)}-Source.zip'
     if source.exists():
         policy.validate_source_zip(source)
     private = stash_bundles(root, version, bundles, metadata)
@@ -208,8 +208,13 @@ def stage(root, qa_report):
             identity.get('debuggable') is False and identity.get('testOnly') is False, 'QA target is not the canonical Release APK')
     if tuple(map(int, version.split('.'))) >= (1, 1, 0):
         required = {'virtual-game-boot', 'virtual-nxn50', 'virtual-polyhedra', 'virtual-ortega-worker', 'virtual-native-touch-and-restore'}
-        require(len(qa['checks']) == 18 and all(sum(check.get('name') == name for check in qa['checks']) == 1 for name in required) and
+        review = tuple(map(int, version.split('.'))) >= (1, 2, 0)
+        if review:
+            required |= {'review-developer-unlock', 'review-edit-preview-persistence', 'review-native-document-roundtrip'}
+        require(len(qa['checks']) == (21 if review else 18) and all(sum(check.get('name') == name for check in qa['checks']) == 1 for name in required) and
                 qa.get('virtualPuzzlesRequested') is True and qa.get('virtualDatabaseRestored') is True, 'Required virtual puzzle QA is missing')
+        if review:
+            require(qa.get('reviewModeRequested') is True and qa.get('reviewDatabaseRestored') is True, 'Required review mode QA is missing')
     target, existing, old_bundles = inspect_existing(root, version)
     require(not git_bytes(root, ['status', '--porcelain']).strip(), 'Commit release sources before staging')
     revision, source = release_source(root, existing)
@@ -226,13 +231,13 @@ def stage(root, qa_report):
         audit = json.loads(run.stdout)
         require(audit['passed'], 'Offline asset audit failed')
         audits.append(audit)
-    source_path = owned(root, target / f'RG2-Mobile-{version}-Source.zip')
+    source_path = owned(root, target / f'{policy.artifact_base(version)}-Source.zip')
     require(not source_path.exists() or sha256(source_path) == hashlib.sha256(source).hexdigest(), 'Existing source differs from pinned release revision')
     if existing:
-        pinned = next(item for item in existing['files'] if item['name'] == f'RG2-Mobile-{version}.apk')
+        pinned = next(item for item in existing['files'] if item['name'] == f'{policy.artifact_base(version)}.apk')
         require(pinned['sha256'] == sha256(apk), 'Refusing to replace a different frozen APK')
     target.mkdir(parents=True, exist_ok=True)
-    files = [copy_frozen(root, apk, target / f'RG2-Mobile-{version}.apk')]
+    files = [copy_frozen(root, apk, target / f'{policy.artifact_base(version)}.apk')]
     if not source_path.exists():
         with source_path.open('xb') as stream:
             stream.write(source)

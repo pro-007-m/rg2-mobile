@@ -1,11 +1,12 @@
 {
-  "checkedOn": "2026-11-14",
+  "checkedOn": "2026-11-17",
   "appId": "io.github.pro007m.rg2",
-  "version": "1.0.1",
+  "version": "1.2.0",
   "github": {
     "status": "direct-download-channel",
-    "repository": "https://github.com/pro-007-m/rg2-mobile",
-    "releases": "https://github.com/pro-007-m/rg2-mobile/releases"
+    "repository": "https://github.com/pro-007-m/twistforge-mobile",
+    "releases": "https://github.com/pro-007-m/twistforge-mobile/releases",
+    "compatibilityRepository": "https://github.com/pro-007-m/rg2-mobile"
   },
   "stores": [
     {

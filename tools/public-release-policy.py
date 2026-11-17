@@ -17,9 +17,14 @@ def valid_version(version):
     return version
 
 
-def public_allowlist(version):
+def artifact_base(version):
     valid_version(version)
-    return {f"RG2-Mobile-{version}.apk", f"RG2-Mobile-{version}-Source.zip", "manifest.json", "SHA256SUMS.txt"}
+    return ('TwistForge-Mobile-' if tuple(map(int, version.split('.'))) >= (1, 2, 0) else 'RG2-Mobile-') + version
+
+
+def public_allowlist(version):
+    base = artifact_base(version)
+    return {f"{base}.apk", f"{base}-Source.zip", "manifest.json", "SHA256SUMS.txt"}
 
 
 def no_links(path):
@@ -83,8 +88,8 @@ def validate_public_release(directory, version):
     entries = {entry.name: no_links(entry) for entry in directory.iterdir()}
     require(set(entries) <= public_allowlist(version) and all(path.is_file() for path in entries.values()),
             "Public release contains a non-allowlisted artifact")
-    apk = f"RG2-Mobile-{version}.apk"
-    source = f"RG2-Mobile-{version}-Source.zip"
+    apk = f"{artifact_base(version)}.apk"
+    source = f"{artifact_base(version)}-Source.zip"
     require({apk, "manifest.json", "SHA256SUMS.txt"} <= set(entries), "Required public release files are missing")
     if tuple(map(int, version.split("."))) >= (1, 1, 0):
         require(source in entries, "This GPL-enabled release requires its matching source archive")

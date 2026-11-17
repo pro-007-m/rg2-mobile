@@ -1,7 +1,7 @@
 {
   "appId": "io.github.pro007m.rg2",
-  "versionName": "1.1.0",
-  "versionCode": 3,
+  "versionName": "1.2.0",
+  "versionCode": 4,
   "containsAds": false,
   "inAppPurchases": false,
   "requiresAccount": false,
@@ -13,7 +13,7 @@
   "processing": "on-device",
   "backup": "user-selected local document",
   "externalLinks": "user initiated; opened outside WebView",
-  "privacyPolicy": "https://pro-007-m.github.io/rg2-mobile/privacy.html",
-  "support": "https://github.com/pro-007-m/rg2-mobile/issues",
+  "privacyPolicy": "https://pro-007-m.github.io/twistforge-mobile/privacy.html",
+  "support": "https://github.com/pro-007-m/twistforge-mobile/issues",
   "note": "Technical facts for store questionnaires. Age ratings, publisher identity and rights declarations must use the store-specific verified account information."
 }

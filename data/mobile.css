@@ -335,3 +335,5 @@ body.mobile-device .cfop-tool .cfop-face-grid button{min-height:44px;min-width:4
  body.mobile-device .cfop-playback button{padding-left:3px;padding-right:3px;}
  body.mobile-device .cfop-speed{grid-column:2;grid-row:3;align-self:stretch;border-top:1px solid var(--line);}
 }
+
+body.mobile-device .sidebar .brand strong{font-size:23px;letter-spacing:-1px}

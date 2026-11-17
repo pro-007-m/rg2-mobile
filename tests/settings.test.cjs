@@ -19,13 +19,13 @@ test('Settings show current app version and local controls while original credit
     assert.equal(await window.RG2App.ready, true);
     window.RG2App.navigate({ type: 'settings' });
     const settings = window.document.querySelector('.settings-layout');
-    assert.ok(settings.textContent.includes('RG2 · Android 1.1.0'));
+    assert.ok(settings.textContent.includes('TwistForge · Android 1.2.0'));
     assert.ok(!/RG2F|RubicsGuide|автор/i.test(settings.textContent));
     assert.equal(settings.querySelectorAll('[data-open-item]').length, 0);
     assert.equal(settings.querySelectorAll('input[name="theme"]').length, 3);
     assert.ok(settings.textContent.includes('Горячие клавиши'));
     assert.ok(settings.textContent.includes('сохраняются на этом устройстве'));
-    assert.match(read('android/app/build.gradle'), /versionName.*1\.1\.0/);
+    assert.match(read('android/app/build.gradle'), /versionName.*1\.2\.0/);
     assert.ok(window.RG2App.items.has('ABOUT-0'));
     window.RG2App.openItem('ABOUT-0');
     assert.ok(window.document.querySelector('#article-body').textContent.trim().length > 100);
@@ -248,7 +248,7 @@ test('Android settings link to mobile releases and never expose a Windows instal
     const d=app.window.document;
     assert.equal(d.querySelector('#update-check'),null);
     assert.equal(d.querySelector('#update-install'),null);
-    assert.equal(d.querySelector('.app-release-link').href,'https://github.com/pro-007-m/rg2-mobile/releases/latest');
+    assert.equal(d.querySelector('.app-release-link').href,'https://github.com/pro-007-m/twistforge-mobile/releases/latest');
     assert.ok(!/Windows|компьютере/.test(d.querySelector('.settings-layout').textContent));
     assert.equal(app.nativeMessages.filter(m=>m.type.startsWith('update-')).length,0);
   } finally {app.dom.window.close();}

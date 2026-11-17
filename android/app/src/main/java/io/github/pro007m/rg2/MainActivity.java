@@ -41,6 +41,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Locale;
@@ -55,16 +57,19 @@ public final class MainActivity extends Activity {
     private static final int EXPORT_REQUEST = 4101;
     private static final int IMPORT_REQUEST = 4102;
     private static final int MAX_DATA_BYTES = 8 * 1024 * 1024;
-    private static final int MAX_MESSAGE_CHARS = 12 * 1024 * 1024;
+    // The JSON envelope escapes quotes/backslashes in the document a second
+    // time. Still bound the message while admitting every valid 8MiB export.
+    private static final int MAX_MESSAGE_CHARS = 2 * MAX_DATA_BYTES + 4096;
     private final ExecutorService documents = Executors.newSingleThreadExecutor();
     private WebView webView;
     private FrameLayout content;
     private boolean keepAwakeRequested;
     private boolean destroyed;
     private boolean documentPickerOpen;
+    private int pendingDocumentRequest;
     private String pendingExport;
-    private boolean pendingPuzzleImport;
-    private boolean pendingPuzzleExport;
+    private enum DocumentKind { BACKUP, PUZZLE, REVIEW }
+    private DocumentKind pendingDocumentKind;
     private String resolvedTheme;
 
     @Override public void onCreate(Bundle savedInstanceState) {
@@ -80,7 +85,7 @@ public final class MainActivity extends Activity {
         if (!WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
             new AlertDialog.Builder(this)
                 .setTitle("Обновите Android System WebView")
-                .setMessage("Для работы RG2 нужна современная версия Android System WebView или Chrome. Обновите её и откройте приложение снова.")
+                .setMessage("Для работы TwistForge нужна современная версия Android System WebView или Chrome. Обновите её и откройте приложение снова.")
                 .setPositiveButton("Закрыть", (dialog, which) -> finish())
                 .setCancelable(false).show();
             return;
@@ -173,7 +178,7 @@ public final class MainActivity extends Activity {
         webView.setWebChromeClient(new WebChromeClient() {
             @Override public boolean onJsConfirm(WebView view, String url, String message, JsResult result) {
                 if (!isTrustedPage()) { result.cancel(); return true; }
-                new AlertDialog.Builder(MainActivity.this).setTitle("RG2 Mobile").setMessage(message)
+                new AlertDialog.Builder(MainActivity.this).setTitle("TwistForge").setMessage(message)
                     .setPositiveButton("Да", (dialog, which) -> result.confirm())
                     .setNegativeButton("Отмена", (dialog, which) -> result.cancel())
                     .setOnCancelListener(dialog -> result.cancel()).show();
@@ -181,7 +186,7 @@ public final class MainActivity extends Activity {
             }
             @Override public boolean onJsAlert(WebView view, String url, String message, JsResult result) {
                 if (!isTrustedPage()) { result.cancel(); return true; }
-                new AlertDialog.Builder(MainActivity.this).setTitle("RG2 Mobile").setMessage(message)
+                new AlertDialog.Builder(MainActivity.this).setTitle("TwistForge").setMessage(message)
                     .setPositiveButton("ОК", (dialog, which) -> result.confirm())
                     .setOnCancelListener(dialog -> result.cancel()).show();
                 return true;
@@ -190,7 +195,7 @@ public final class MainActivity extends Activity {
                 if (!isTrustedPage()) { result.cancel(); return true; }
                 EditText input = new EditText(MainActivity.this);
                 input.setText(initial == null ? "" : initial);
-                new AlertDialog.Builder(MainActivity.this).setTitle("RG2 Mobile").setMessage(message).setView(input)
+                new AlertDialog.Builder(MainActivity.this).setTitle("TwistForge").setMessage(message).setView(input)
                     .setPositiveButton("ОК", (dialog, which) -> result.confirm(input.getText().toString()))
                     .setNegativeButton("Отмена", (dialog, which) -> result.cancel())
                     .setOnCancelListener(dialog -> result.cancel()).show();
@@ -215,7 +220,7 @@ public final class MainActivity extends Activity {
                 String text = data.getString("text");
                 if (text.length() > 1024 * 1024) throw new IllegalArgumentException();
                 ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-                clipboard.setPrimaryClip(ClipData.newPlainText("RG2", text));
+                clipboard.setPrimaryClip(ClipData.newPlainText("TwistForge", text));
                 break;
             }
             case "theme": {
@@ -237,36 +242,45 @@ public final class MainActivity extends Activity {
                 if (!openExternal(data.getString("url"))) throw new IllegalArgumentException();
                 break;
             case "export-data":
-                beginExport(data.getString("text"));
+                beginExport(data.getString("text"), "TwistForge-backup.json", DocumentKind.BACKUP);
                 break;
             case "export-puzzle": {
                 String text = data.getString("text");
                 JSONObject game = new JSONObject(text);
                 if (!"rg2-puzzle-game".equals(game.optString("schema")) || game.optInt("version") != 1) throw new IllegalArgumentException();
-                String name = data.optString("name", "RG2-puzzle.json");
-                if (!name.matches("RG2-(cube|pyramid|dodecahedron)-[0-9]{1,2}\\.json")) name = "RG2-puzzle.json";
-                beginExport(text, name, true);
+                String name = data.optString("name", "TwistForge-puzzle.json");
+                if (!name.matches("(RG2|TwistForge)-(cube|pyramid|dodecahedron)-[0-9]{1,2}\\.json")) name = "TwistForge-puzzle.json";
+                beginExport(text, name, DocumentKind.PUZZLE);
+                break;
+            }
+            case "export-review": {
+                String text = data.getString("text");
+                validateReview(new JSONObject(text));
+                String name = data.optString("name", "TwistForge-Review.json");
+                if (!name.matches("TwistForge-Review(-[A-Za-z0-9_-]{1,60})?\\.json")) name = "TwistForge-Review.json";
+                beginExport(text, name, DocumentKind.REVIEW);
                 break;
             }
             case "import-data":
-                if (documentPickerOpen) throw new IllegalStateException();
-                pendingPuzzleImport = false;
-                beginImport();
+                beginImport(DocumentKind.BACKUP);
                 break;
             case "import-puzzle":
-                if (documentPickerOpen) throw new IllegalStateException();
-                pendingPuzzleImport = true;
-                beginImport();
+                beginImport(DocumentKind.PUZZLE);
+                break;
+            case "import-review":
+                beginImport(DocumentKind.REVIEW);
                 break;
             default: throw new IllegalArgumentException();
         }
     }
 
-    private void beginExport(String text) throws Exception {
-        beginExport(text, "RG2-backup.json", false);
+    private static void validateReview(JSONObject review) throws JSONException {
+        Object version = review.opt("version");
+        if (!"twistforge-review".equals(review.opt("schema")) || !(version instanceof Integer) || ((Integer) version) != 1)
+            throw new IllegalArgumentException("Unsupported review envelope");
     }
 
-    private void beginExport(String text, String name, boolean puzzle) throws Exception {
+    private void beginExport(String text, String name, DocumentKind kind) throws Exception {
         if (documentPickerOpen || text.getBytes(StandardCharsets.UTF_8).length > MAX_DATA_BYTES) {
             throw new IllegalStateException();
         }
@@ -276,34 +290,36 @@ public final class MainActivity extends Activity {
         intent.setType("application/json");
         intent.putExtra(Intent.EXTRA_TITLE, name);
         pendingExport = text;
-        pendingPuzzleExport = puzzle;
+        pendingDocumentKind = kind;
+        pendingDocumentRequest = EXPORT_REQUEST;
         documentPickerOpen = true;
         try { startActivityForResult(intent, EXPORT_REQUEST); }
-        catch (Exception error) { pendingExport = null; documentPickerOpen = false; throw error; }
+        catch (Exception error) { pendingExport = null; pendingDocumentKind = null; pendingDocumentRequest = 0; documentPickerOpen = false; throw error; }
     }
 
-    private void beginImport() {
+    private void beginImport(DocumentKind kind) {
         if (documentPickerOpen) throw new IllegalStateException();
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("*/*");
         intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[] {"application/json", "text/plain", "application/octet-stream"});
+        pendingDocumentKind = kind;
+        pendingDocumentRequest = IMPORT_REQUEST;
         documentPickerOpen = true;
         try { startActivityForResult(intent, IMPORT_REQUEST); }
-        catch (Exception error) { documentPickerOpen = false; throw error; }
+        catch (Exception error) { pendingDocumentKind = null; pendingDocumentRequest = 0; documentPickerOpen = false; throw error; }
     }
 
     @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode != EXPORT_REQUEST && requestCode != IMPORT_REQUEST) return;
-        documentPickerOpen = false;
+        if (!documentPickerOpen || pendingDocumentKind == null || requestCode != pendingDocumentRequest) return;
         String exportText = pendingExport;
-        boolean importPuzzle = pendingPuzzleImport;
-        boolean exportPuzzle = pendingPuzzleExport;
+        DocumentKind kind = pendingDocumentKind;
         pendingExport = null;
-        pendingPuzzleImport = false;
-        pendingPuzzleExport = false;
-        if (resultCode != RESULT_OK || data == null || data.getData() == null) return;
+        pendingDocumentKind = null;
+        pendingDocumentRequest = 0;
+        if (resultCode != RESULT_OK || data == null || data.getData() == null) { documentPickerOpen = false; return; }
         Uri uri = data.getData();
         documents.execute(() -> {
             try {
@@ -313,7 +329,7 @@ public final class MainActivity extends Activity {
                         if (stream == null) throw new IllegalStateException();
                         stream.write(exportText.getBytes(StandardCharsets.UTF_8));
                     }
-                    runOnUiThread(() -> showToast(exportPuzzle ? "Партия сохранена." : "Резервная копия сохранена."));
+                    runOnUiThread(() -> showToast(kind == DocumentKind.REVIEW ? "Все пометки сохранены одним файлом." : kind == DocumentKind.PUZZLE ? "Партия сохранена." : "Резервная копия сохранена."));
                 } else {
                     String text;
                     try (InputStream stream = getContentResolver().openInputStream(uri)) {
@@ -325,19 +341,27 @@ public final class MainActivity extends Activity {
                             if (bytes.size() + count > MAX_DATA_BYTES) throw new IllegalArgumentException();
                             bytes.write(block, 0, count);
                         }
-                        text = bytes.toString(StandardCharsets.UTF_8.name());
+                        text = StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
+                            .onUnmappableCharacter(CodingErrorAction.REPORT).decode(ByteBuffer.wrap(bytes.toByteArray())).toString();
                     }
                     // Import validation and explicit replacement confirmation belong to the UI.
                     String jsonText = text.startsWith("\uFEFF") ? text.substring(1) : text;
-                    new JSONObject(jsonText);
-                    String receiver = importPuzzle ? "receivePuzzleImport" : "receiveImport";
-                    runOnUiThread(() -> evaluate("if(window.RG2Mobile&&window.RG2Mobile." + receiver + "){window.RG2Mobile." + receiver + "("
-                        + JSONObject.quote(jsonText) + ");}"));
+                    JSONObject parsed = new JSONObject(jsonText);
+                    if (kind == DocumentKind.REVIEW) {
+                        validateReview(parsed);
+                        runOnUiThread(() -> evaluate("window.TwistForgeReview?.receiveImport(" + JSONObject.quote(jsonText) + ");"));
+                    } else {
+                        String receiver = kind == DocumentKind.PUZZLE ? "receivePuzzleImport" : "receiveImport";
+                        runOnUiThread(() -> evaluate("if(window.RG2Mobile&&window.RG2Mobile." + receiver + "){window.RG2Mobile." + receiver + "("
+                            + JSONObject.quote(jsonText) + ");}"));
+                    }
                 }
             } catch (Exception error) {
-                runOnUiThread(() -> showToast(requestCode == IMPORT_REQUEST
+                runOnUiThread(() -> showToast(kind == DocumentKind.REVIEW ? "Не удалось открыть или сохранить пометки. Нужен файл TwistForge JSON до 8 МБ." : requestCode == IMPORT_REQUEST
                     ? "Не удалось прочитать JSON-копию. Проверьте файл (до 8 МБ)."
                     : "Не удалось сохранить резервную копию."));
+            } finally {
+                runOnUiThread(() -> documentPickerOpen = false);
             }
         });
     }
@@ -458,6 +482,8 @@ public final class MainActivity extends Activity {
         destroyed = true;
         documents.shutdown();
         pendingExport = null;
+        pendingDocumentKind = null;
+        pendingDocumentRequest = 0;
         if (webView != null) {
             if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
                 WebViewCompat.removeWebMessageListener(webView, "RG2NativePort");

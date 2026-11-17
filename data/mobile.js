@@ -1,7 +1,7 @@
 /* Native Android integration. The library and solver stay fully local. */
 (() => {
   'use strict';
-  const VERSION='1.1.0', RELEASES='https://github.com/pro-007-m/rg2-mobile/releases/latest';
+  const VERSION='1.2.0', RELEASES='https://github.com/pro-007-m/twistforge-mobile/releases/latest';
   const $=selector=>document.querySelector(selector);
   let nativeInfo=null,menuObserver=null,initialized=false;
   function post(type,values={}) {
@@ -29,7 +29,7 @@
   const platform=window.RG2Platform={version:VERSION,releases:RELEASES,copy,post,
     theme(resolved){post('theme',{resolved});},openExternal,
     mobileSettings(){return `<section class="settings-block mobile-settings"><h2>На телефоне</h2><p>Поверни куб одним пальцем, приближай двумя. Коснись наклейки, чтобы раскрасить её. Системная кнопка «Назад» закрывает меню и изображения, затем возвращает на предыдущий экран.</p><label class="settings-row" for="mobile-awake"><span><strong>Не выключать экран в тренажёрах</strong><small>Таймер и решатель останутся видимыми во время практики.</small></span><input type="checkbox" id="mobile-awake"></label><div class="mobile-data-actions"><button class="action-button" id="mobile-export">Сохранить резервную копию</button><button class="action-button" id="mobile-import">Восстановить из копии</button></div><p>Копия содержит избранное, настройки, результаты и раскраску. Она хранится там, где ты выберешь.</p><button class="action-button" id="mobile-privacy">Конфиденциальность</button></section>`;},
-    updates(){return `<section class="settings-block app-updates"><h2>Обновления</h2><p id="update-current-version">RG2 · Android ${VERSION}</p><p>Обновляй приложение в магазине, из которого оно установлено. Для версии из GitHub новый APK устанавливается поверх старого с сохранением данных.</p><a class="app-release-link" href="${RELEASES}" target="_blank" rel="noopener noreferrer">Открыть выпуски для Android</a></section>`;}
+    updates(){return `<section class="settings-block app-updates"><h2>Обновления</h2><p id="update-current-version">TwistForge · Android ${VERSION}</p><p>Обновляй приложение в магазине, из которого оно установлено. Для версии из GitHub новый APK устанавливается поверх старого с сохранением данных.</p><a class="app-release-link" href="${RELEASES}" target="_blank" rel="noopener noreferrer">Открыть выпуски для Android</a></section>`;}
   };
   function awakeEnabled(){try{return localStorage.getItem('rg2.mobile.keepAwake')!=='false';}catch{return true;}}
   function syncAwake(){post('keep-awake',{enabled:awakeEnabled()&&document.visibilityState!=='hidden'&&window.RG2App?.state.route?.type==='tool'});}
@@ -40,6 +40,7 @@
   }
   function closeMenu(){ $('#sidebar')?.classList.remove('expanded');syncMenu(); }
   function back(){
+    if(window.TwistForgeReview?.handleBack?.())return true;
     const fullscreen=document.querySelector('.puz-fullscreen');
     if(fullscreen){fullscreen.classList.remove('puz-fullscreen');fullscreen.dispatchEvent(new Event('rg2:puzzle-fullscreen-change',{bubbles:true}));return true;}
     if(document.fullscreenElement){document.exitFullscreen().catch(()=>{});return true;}
@@ -67,7 +68,7 @@
   function validateImport(text){
     if(typeof text!=='string'||text.length>4*1024*1024)throw new Error('Копия слишком большая.');
     const value=JSON.parse(text);
-    if(value?.format!=='rg2-backup'||value.version!==1||!value.data||typeof value.data!=='object'||Array.isArray(value.data))throw new Error('Это не резервная копия RG2.');
+    if(value?.format!=='rg2-backup'||value.version!==1||!value.data||typeof value.data!=='object'||Array.isArray(value.data))throw new Error('Это не резервная копия TwistForge.');
     const entries=Object.entries(value.data);
     if(entries.length>300||!entries.every(([key,item])=>/^rg2\.[A-Za-z0-9._-]{1,120}$/.test(key)&&typeof item==='string'&&item.length<=2*1024*1024))throw new Error('В копии есть неподдерживаемые данные.');
     if(typeof window.RG2Storage?.validateEntries!=='function')throw new Error('Не удалось проверить резервную копию. Перезапусти приложение.');
@@ -77,7 +78,7 @@
   function receiveImport(text){
     try {
       const entries=validateImport(text);
-      if(!window.confirm('Заменить сохранённые данные RG2 данными из этой копии?'))return false;
+      if(!window.confirm('Заменить сохранённые данные TwistForge данными из этой копии?'))return false;
       const old=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k?.startsWith('rg2.'))old.push([k,localStorage.getItem(k)]);}
       try {for(const [k]of old)localStorage.removeItem(k);for(const [k,v]of entries)localStorage.setItem(k,v);}
       catch(error){for(const[k]of entries)localStorage.removeItem(k);for(const[k,v]of old)localStorage.setItem(k,v);throw error;}
@@ -86,13 +87,13 @@
   }
   function privacy(){
     let d=$('#mobile-privacy-dialog');
-    if(!d){d=document.createElement('dialog');d.id='mobile-privacy-dialog';d.className='mobile-dialog';d.innerHTML='<h2>Конфиденциальность</h2><p>RG2 работает без регистрации, рекламы и аналитики. Библиотека, цвета куба, избранное, результаты и настройки обрабатываются и хранятся на этом устройстве.</p><p>Приложение не запрашивает доступ к камере, микрофону, контактам или геопозиции и само не отправляет данные на сервер. Видео, магазин и GitHub открываются отдельно в браузере. Для них действуют правила соответствующих сайтов.</p><p>Резервная копия создаётся и открывается только по твоей команде через системный выбор файла. Удаление данных приложения в настройках Android очищает локальный профиль; выбранные тобой внешние копии остаются у тебя.</p><form method="dialog"><button class="action-button">Закрыть</button></form>';document.body.append(d);}
+    if(!d){d=document.createElement('dialog');d.id='mobile-privacy-dialog';d.className='mobile-dialog';d.innerHTML='<h2>Конфиденциальность</h2><p>TwistForge работает без регистрации, рекламы и аналитики. Библиотека, цвета куба, избранное, результаты и настройки обрабатываются и хранятся на этом устройстве.</p><p>Приложение не запрашивает доступ к камере, микрофону, контактам или геопозиции и само не отправляет данные на сервер. Видео, магазин и GitHub открываются отдельно в браузере. Для них действуют правила соответствующих сайтов.</p><p>Резервная копия создаётся и открывается только по твоей команде через системный выбор файла. Удаление данных приложения в настройках Android очищает локальный профиль; выбранные тобой внешние копии остаются у тебя.</p><form method="dialog"><button class="action-button">Закрыть</button></form>';document.body.append(d);}
     d.showModal();
   }
   async function receivePuzzleImport(text){
     try{
       if(typeof text!=='string'||text.length>8*1024*1024)throw new Error('Файл партии слишком большой.');
-      const data=JSON.parse(text);if(data?.schema!=='rg2-puzzle-game'||data.version!==1)throw new Error('Это не файл партии RG2.');
+      const data=JSON.parse(text);if(data?.schema!=='rg2-puzzle-game'||data.version!==1)throw new Error('Это не файл партии TwistForge.');
       const app=window.RG2App;await app.ready;
       if(app.state.route?.type!=='tool'||app.state.route.id!=='virtual-puzzles')app.navigate({type:'tool',id:'virtual-puzzles'});
       for(let i=0;i<100;i++){const tool=document.querySelector('#tool-host')?.virtualPuzzle;if(tool){await tool.ready;return await tool.receiveImport(text);}await new Promise(resolve=>setTimeout(resolve,50));}
@@ -111,7 +112,7 @@
     const target=event.target.closest('button,a');if(!target)return;
     if(target.id==='mobile-menu-close'||target.id==='mobile-menu-backdrop')closeMenu();
     if(target.id==='mobile-export'){
-      const text=exportData();if(!post('export-data',{text})){const blob=new Blob([text],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='RG2-backup.json';a.click();URL.revokeObjectURL(url);}
+      const text=exportData();if(!post('export-data',{text})){const blob=new Blob([text],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='TwistForge-backup.json';a.click();URL.revokeObjectURL(url);}
     }
     if(target.id==='mobile-import'&&!post('import-data')){
       const file=document.createElement('input');file.type='file';file.accept='application/json,.json';file.addEventListener('change',async()=>{if(file.files[0])receiveImport(await file.files[0].text());});file.click();

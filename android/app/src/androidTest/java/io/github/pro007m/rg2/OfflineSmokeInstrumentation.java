@@ -3,10 +3,12 @@ package io.github.pro007m.rg2;
 import android.app.Activity;
 import android.app.Instrumentation;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.view.InputDevice;
@@ -23,6 +25,7 @@ import org.json.JSONTokener;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -52,6 +55,9 @@ public final class OfflineSmokeInstrumentation extends Instrumentation {
     private JSONObject virtualDatabaseBackup;
     private boolean virtualPuzzles;
     private boolean virtualDatabaseRestored;
+    private boolean reviewMode;
+    private JSONObject reviewDatabaseBackup;
+    private boolean reviewDatabaseRestored;
 
     @Override public void onCreate(Bundle arguments) {
         super.onCreate(arguments);
@@ -60,7 +66,10 @@ public final class OfflineSmokeInstrumentation extends Instrumentation {
             String virtualArgument = arguments.getString("virtualPuzzles", "false");
             require("true".equals(virtualArgument) || "false".equals(virtualArgument), "virtualPuzzles must be true or false");
             virtualPuzzles = "true".equals(virtualArgument);
-            long maximum = virtualPuzzles ? 180000 : 90000;
+            String reviewArgument = arguments.getString("reviewMode", "false");
+            require("true".equals(reviewArgument) || "false".equals(reviewArgument), "reviewMode must be true or false");
+            reviewMode = "true".equals(reviewArgument);
+            long maximum = reviewMode ? 240000 : virtualPuzzles ? 180000 : 90000;
             try { limit = Math.max(40000, Math.min(maximum, Long.parseLong(arguments.getString("timeoutMs", String.valueOf(maximum))))); }
             catch (NumberFormatException ignored) { }
         }
@@ -97,7 +106,7 @@ public final class OfflineSmokeInstrumentation extends Instrumentation {
                 if(location.origin!=='https://appassets.androidplatform.net')throw Error('wrong asset origin');
                 return {ready:ok,origin:location.origin,bootError:a.state.bootError,userAgent:navigator.userAgent};
                 """, 10000));
-            storageBackup = evalObject("Object.fromEntries(Object.keys(localStorage).filter(k=>k.startsWith('rg2.')).map(k=>[k,localStorage.getItem(k)]))");
+            storageBackup = evalObject("Object.fromEntries(Object.keys(localStorage).filter(k=>k.startsWith('rg2.')||k.startsWith('twistforge.')).map(k=>[k,localStorage.getItem(k)]))");
             record("catalog-and-local-resources", runJs("""
                 const a=RG2App,c=a.catalog;
                 if(c.phases.length!==60||a.items.size!==560)throw Error('catalog counts '+c.phases.length+'/'+a.items.size);
@@ -230,6 +239,7 @@ public final class OfflineSmokeInstrumentation extends Instrumentation {
             runJs("document.querySelector('.cfop-cube canvas')?.scrollIntoView({block:'center'});await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));return {scrolledToCube:true};", 2000);
             screenshot("06-solver-portrait-paused");
             if (virtualPuzzles) runVirtualChecks();
+            if (reviewMode) runReviewChecks();
         } catch (Throwable error) {
             failure = error;
             try { screenshot("failure"); } catch (Throwable ignored) { }
@@ -243,7 +253,12 @@ public final class OfflineSmokeInstrumentation extends Instrumentation {
                         runJs("const snapshot=" + databaseSnapshot + ";const db=await new Promise((ok,bad)=>{const r=indexedDB.open('rg2-puzzle-games',1);r.onupgradeneeded=()=>r.result.createObjectStore('sessions');r.onsuccess=()=>ok(r.result);r.onerror=()=>bad(r.error)});await new Promise((ok,bad)=>{const t=db.transaction('sessions','readwrite'),s=t.objectStore('sessions');s.clear();for(const e of snapshot.entries)s.put(e.value,e.key);t.oncomplete=ok;t.onerror=()=>bad(t.error)});db.close();return {restored:true};", 10000);
                         virtualDatabaseRestored = true;
                     }
-                    evalObject("(()=>{for(const k of Object.keys(localStorage))if(k.startsWith('rg2.'))localStorage.removeItem(k);const old=" + snapshot + ";for(const [k,v]of Object.entries(old))localStorage.setItem(k,v);return {restored:true}})()");
+                    if (reviewDatabaseBackup != null) {
+                        final String reviewSnapshot = reviewDatabaseBackup.toString();
+                        runJs("const snapshot=" + reviewSnapshot + ";const db=await new Promise((ok,bad)=>{const r=indexedDB.open('twistforge-review',1);r.onupgradeneeded=()=>r.result.createObjectStore('workspace');r.onsuccess=()=>ok(r.result);r.onerror=()=>bad(r.error)});await new Promise((ok,bad)=>{const t=db.transaction('workspace','readwrite'),s=t.objectStore('workspace');s.clear();for(const e of snapshot.entries)s.put(e.value,e.key);t.oncomplete=ok;t.onerror=()=>bad(t.error)});db.close();return {restored:true};", 10000);
+                        reviewDatabaseRestored = true;
+                    }
+                    evalObject("(()=>{for(const k of Object.keys(localStorage))if(k.startsWith('rg2.')||k.startsWith('twistforge.'))localStorage.removeItem(k);const old=" + snapshot + ";for(const [k,v]of Object.entries(old))localStorage.setItem(k,v);return {restored:true}})()");
                     restored = true;
                 } catch (Throwable error) { if (failure == null) failure = error; }
             }
@@ -258,6 +273,7 @@ public final class OfflineSmokeInstrumentation extends Instrumentation {
                 .put("installedTarget", installedTarget == null ? JSONObject.NULL : installedTarget)
                 .put("testedBuildType", installedTarget == null ? "unknown" : installedTarget.optString("buildType", "unknown"))
                 .put("virtualPuzzlesRequested", virtualPuzzles).put("virtualDatabaseRestored", virtualDatabaseRestored)
+                .put("reviewModeRequested", reviewMode).put("reviewDatabaseRestored", reviewDatabaseRestored)
                 .put("checks", checks).put("screenshots", screenshots).put("storageRestored", restored)
                 .put("offlineEvidence", "No INTERNET permission; only APK-local same-origin resource requests")
                 .put("error", failure == null ? JSONObject.NULL : failure.toString());
@@ -272,6 +288,111 @@ public final class OfflineSmokeInstrumentation extends Instrumentation {
         result.putBoolean("passed", passed);
         if (failure != null) result.putString("error", failure.toString());
         finish(passed ? Activity.RESULT_OK : Activity.RESULT_CANCELED, result);
+    }
+
+    /** Optional review extension preserves both historical smoke-test contracts. */
+    private void runReviewChecks() throws Exception {
+        String appLabel = getTargetContext().getPackageManager().getApplicationLabel(getTargetContext().getApplicationInfo()).toString();
+        require("TwistForge".equals(appLabel), "Visible Android application name was not renamed");
+        waitFor("review controller", "Boolean(window.TwistForgeReview)", 10000);
+        runJs("await TwistForgeReview.ready;return {ready:true};", 10000);
+        reviewDatabaseBackup = runJs("const db=await new Promise((ok,bad)=>{const r=indexedDB.open('twistforge-review',1);r.onupgradeneeded=()=>r.result.createObjectStore('workspace');r.onsuccess=()=>ok(r.result);r.onerror=()=>bad(r.error)});const entries=await new Promise((ok,bad)=>{const entries=[],r=db.transaction('workspace').objectStore('workspace').openCursor();r.onsuccess=()=>{const c=r.result;if(c){entries.push({key:c.key,value:c.value});c.continue()}else ok(entries)};r.onerror=()=>bad(r.error)});db.close();return {entries};", 10000);
+        // Reset only the local convenience gate in the isolated QA profile. The
+        // unlock itself below uses five real touch events and the actual form.
+        evalObject("(localStorage.removeItem('twistforge.developer.enabled.v1'),window.__reviewReload=true,{reset:true})");
+        runOnMainSync(() -> webView.reload());
+        SystemClock.sleep(150);
+        waitFor("review reload", "Boolean(!window.__reviewReload&&window.TwistForgeReview)", 10000);
+        JSONObject build = runJs("await RG2App.ready;await TwistForgeReview.ready;RG2App.navigate({type:'settings'});await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));const e=document.querySelector('#app-version');if(!e||!e.classList.contains('tf-build-number'))throw Error('build number not bound');e.scrollIntoView({block:'center'});await new Promise(r=>requestAnimationFrame(r));if(document.querySelector('.tf-dev-challenge'))throw Error('challenge appears without five taps');const q=e.getBoundingClientRect();return {left:q.left,top:q.top,width:q.width,height:q.height,innerWidth};", 5000);
+        float[] position = screenPoint(build, .5f, .5f);
+        for (int i = 0; i < 4; i++) { touchTap(position[0], position[1]); SystemClock.sleep(110); }
+        require(!evalObject("({shown:Boolean(document.querySelector('.tf-dev-challenge'))})").getBoolean("shown"), "Challenge appeared before fifth tap");
+        touchTap(position[0], position[1]);
+        waitFor("developer challenge", "Boolean(document.querySelector('.tf-dev-challenge'))", 3000);
+        runJs("const c=document.querySelector('.tf-dev-challenge');if(c.querySelector('h3').textContent!=='Что ты здесь делаешь?!?')throw Error('challenge title');c.querySelector('input').value='неверный код';c.querySelector('button').click();if(c.querySelector('input').getAttribute('aria-invalid')!=='true'||localStorage.getItem('twistforge.developer.enabled.v1')==='true')throw Error('wrong code accepted');c.querySelector('input').value='Я знал, что так будет';c.querySelector('button').click();return {wrongCodeRejected:true};", 3000);
+        waitFor("developer unlock", "localStorage.getItem('twistforge.developer.enabled.v1')==='true'&&!document.querySelector('.tf-unlock-flight')&&Boolean(document.querySelector('.tf-review-launcher:not([hidden])'))", 6000);
+        record("review-developer-unlock", runJs("return {fiveNativeTaps:true,wrongCodeRejected:true,enabled:localStorage.getItem('twistforge.developer.enabled.v1')==='true',launcher:!document.querySelector('.tf-review-launcher').hidden,icon:document.querySelector('.tf-review-launcher img')?.getAttribute('src')};", 2000).put("applicationLabel", appLabel));
+        screenshot("11-review-developer-unlocked");
+        runReviewEditChecks();
+        runReviewDocumentChecks();
+    }
+
+    private void touchTap(float x, float y) {
+        long down = SystemClock.uptimeMillis();
+        sendTouch(down, MotionEvent.ACTION_DOWN, new float[][] {{x, y}});
+        SystemClock.sleep(40);
+        sendTouch(down, MotionEvent.ACTION_UP, new float[][] {{x, y}});
+    }
+
+    private JSONObject reviewCase;
+    private void runReviewEditChecks() throws Exception {
+        runJs("const item=[...RG2App.items.values()].find(i=>i.kind==='article'&&!/^ABOUT/.test(i.id)&&i.html?.length>50);window.__reviewCase={lessonId:item.id,marker:'TwistForge QA '+Date.now(),source:item.html};RG2App.openItem(item.id);return {lessonId:item.id};", 3000);
+        waitFor("review lesson context", "Boolean(TwistForgeReview.debug().contextReady)", 5000);
+        runJs("document.querySelector('.tf-review-launcher').click();await new Promise(r=>setTimeout(r,100));document.querySelector('[data-tf-action=\"rewrite\"]').click();return {opened:true};", 2000);
+        waitFor("rewrite editor", "Boolean(document.querySelector('.tf-review-rich-editor'))", 3000);
+        runJs("const e=document.querySelector('.tf-review-rich-editor');e.innerHTML='<p>'+window.__reviewCase.marker+'</p><p>Алгоритм: R U R&#39; U&#39;</p>';e.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText'}));document.querySelector('[data-tf-action=\"save-composer\"]').click();return {edited:true};", 2000);
+        waitFor("review saved", "Boolean(TwistForgeReview.debug().composer?.noteId)&&!TwistForgeReview.debug().composer.dirty&&!TwistForgeReview.debug().dirty", 5000);
+        reviewCase = runJs("window.__reviewCase.noteId=TwistForgeReview.debug().composer.noteId;window.__reviewCase.count=TwistForgeReview.debug().notes;document.querySelector('[data-tf-action=\"composer-preview\"]').click();return {...window.__reviewCase};", 2000);
+        waitFor("rewritten preview", "TwistForgeReview.debug().preview&&document.querySelector('#article-body').textContent.includes(window.__reviewCase.marker)", 5000);
+        runJs("if(RG2App.items.get(window.__reviewCase.lessonId).html!==window.__reviewCase.source)throw Error('source lesson mutated');if(TwistForgeReview.debug().conflicts.length)throw Error('unexpected preview conflict');document.querySelector('[data-tf-action=\"close-composer\"]').click();return {sourceUntouched:true};", 2000);
+        screenshot("12-review-preview-portrait");
+        evalObject("(window.__reviewPersistenceReloadMarker=true,{marked:true})");
+        runOnMainSync(() -> webView.reload());
+        SystemClock.sleep(200);
+        waitFor("review persisted reload", "Boolean(!window.__reviewPersistenceReloadMarker&&window.TwistForgeReview&&window.RG2App?.catalog)", 10000);
+        final String lesson = JSONObject.quote(reviewCase.getString("lessonId"));
+        runJs("await RG2App.ready;await TwistForgeReview.ready;RG2App.openItem(" + lesson + ");return {ready:true};", 5000);
+        waitFor("persisted lesson context", "Boolean(TwistForgeReview.debug().contextReady)", 5000);
+        runJs("if(!TwistForgeReview.debug().unlocked)throw Error('developer gate lost on reload');document.querySelector('.tf-review-launcher').click();await new Promise(r=>setTimeout(r,100));document.querySelector('[data-tf-action=\"preview-result\"]').click();return {requested:true};", 2000);
+        String marker = JSONObject.quote(reviewCase.getString("marker"));
+        waitFor("persisted preview", "document.querySelector('#article-body').textContent.includes(" + marker + ")", 5000);
+        runJs("const view=document.querySelector('[data-tf-action=\"view-lesson\"]');if(!view)throw Error('full lesson preview control missing');view.click();return {clicked:true};", 2000);
+        waitFor("unobstructed mobile preview", "!TwistForgeReview.debug().panelOpen&&TwistForgeReview.debug().preview", 3000);
+        runJs("document.querySelector('#article-body').scrollIntoView({block:'center'});await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));return {visible:true};", 2000);
+        record("review-edit-preview-persistence", evalObject("({lessonId:" + lesson + ",noteId:" + JSONObject.quote(reviewCase.getString("noteId")) + ",notes:TwistForgeReview.debug().notes,persisted:true,preview:TwistForgeReview.debug().preview,fullLessonVisible:!TwistForgeReview.debug().panelOpen,sourceUnchanged:!RG2App.items.get(" + lesson + ").html.includes(" + marker + ")})"));
+        screenshot("13-review-persisted-preview");
+        runJs("document.querySelector('.tf-review-launcher').click();await new Promise(r=>setTimeout(r,100));return {panelOpen:TwistForgeReview.debug().panelOpen};", 2000);
+    }
+
+    private void runReviewDocumentChecks() throws Exception {
+        // Substitute a QA-owned selection for the system picker, then let the
+        // actual trusted WebMessage bridge and ContentResolver do all I/O.
+        File document = new File(output, "review-roundtrip-" + SystemClock.elapsedRealtime() + ".json");
+        Intent result = new Intent().setData(Uri.fromFile(document));
+        IntentFilter exportFilter = new IntentFilter(Intent.ACTION_CREATE_DOCUMENT); exportFilter.addDataType("application/json"); exportFilter.addCategory(Intent.CATEGORY_OPENABLE);
+        ActivityMonitor exportMonitor = addMonitor(exportFilter, new ActivityResult(Activity.RESULT_OK, result), true);
+        try {
+            runJs("document.querySelector('[data-tf-action=\"export\"]').click();return {exportClicked:true};", 2000);
+            long stop = SystemClock.elapsedRealtime() + remaining(5000);
+            while ((!document.isFile() || document.length() == 0 || nativeDocumentBusy()) && SystemClock.elapsedRealtime() < stop) SystemClock.sleep(80);
+            require(exportMonitor.getHits() == 1 && document.isFile() && document.length() > 0, "Native review export did not reach the document picker and chosen file");
+        } finally { removeMonitor(exportMonitor); }
+        String exported = new String(Files.readAllBytes(document.toPath()), StandardCharsets.UTF_8);
+        JSONObject packageData = new JSONObject(exported);
+        require("twistforge-review".equals(packageData.optString("schema")) && packageData.getInt("version") == 1, "Native export schema mismatch");
+        require(exported.getBytes(StandardCharsets.UTF_8).length <= 8 * 1024 * 1024 && exported.contains(reviewCase.getString("marker")), "Native export lost review text or exceeded limit");
+        final String noteId = JSONObject.quote(reviewCase.getString("noteId"));
+        runJs("const b=[...document.querySelectorAll('[data-tf-action=\"delete-note\"]')].find(e=>e.dataset.noteId===" + noteId + ");if(!b)throw Error('saved note not listed');b.click();return {removed:true};", 2000);
+        int expected = reviewCase.getInt("count");
+        waitFor("note removed before import", "TwistForgeReview.debug().notes===" + (expected - 1), 4000);
+        IntentFilter importFilter = new IntentFilter(Intent.ACTION_OPEN_DOCUMENT); importFilter.addDataType("*/*"); importFilter.addCategory(Intent.CATEGORY_OPENABLE);
+        ActivityMonitor importMonitor = addMonitor(importFilter, new ActivityResult(Activity.RESULT_OK, result), true);
+        try {
+            runJs("document.querySelector('[data-tf-action=\"import\"]').click();return {importClicked:true};", 2000);
+            waitFor("native review import callback", "TwistForgeReview.debug().notes===" + expected, 5000);
+            require(importMonitor.getHits() == 1, "Native review import did not use the document picker");
+        } finally { removeMonitor(importMonitor); }
+        require(!nativeDocumentBusy(), "Native document operation did not release its guard");
+        record("review-native-document-roundtrip", new JSONObject().put("nativeExport", true).put("nativeImport", true).put("systemPickerIntents", true)
+            .put("selection", "instrumentation-selected QA-owned file").put("bytes", document.length()).put("schema", packageData.getString("schema"))
+            .put("lessons", packageData.getJSONArray("lessons").length()).put("notes", packageData.getJSONArray("notes").length()).put("restoredDeletedNote", true));
+    }
+
+    private boolean nativeDocumentBusy() {
+        AtomicReference<Boolean> busy = new AtomicReference<>(false);
+        runOnMainSync(() -> { try { java.lang.reflect.Field field = MainActivity.class.getDeclaredField("documentPickerOpen"); field.setAccessible(true); busy.set(field.getBoolean(activity)); }
+            catch (ReflectiveOperationException error) { throw new AssertionError(error); } });
+        return busy.get();
     }
 
     /** The optional extension preserves the original 13-check contract. */

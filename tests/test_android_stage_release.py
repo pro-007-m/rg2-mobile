@@ -25,6 +25,12 @@ def zip_bytes(name="README.md", content=b"Frozen original source"):
 
 
 class PublicReleaseTests(unittest.TestCase):
+    def test_twistforge_namespace_keeps_historical_release_names(self):
+        self.assertIn('RG2-Mobile-1.1.0.apk', policy.public_allowlist('1.1.0'))
+        names = policy.public_allowlist('1.2.0')
+        self.assertEqual(names, {'TwistForge-Mobile-1.2.0.apk', 'TwistForge-Mobile-1.2.0-Source.zip', 'manifest.json', 'SHA256SUMS.txt'})
+        self.assertFalse(any(name.endswith('.aab') for name in names))
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix="rg2-public-policy-")
         self.addCleanup(self.temp.cleanup)
@@ -69,7 +75,7 @@ class PublicReleaseTests(unittest.TestCase):
         self.assertEqual(local["visibility"], "local-only")
         self.assertEqual(local["files"][0]["sha256"], hashlib.sha256(before[self.bundle.name]).hexdigest())
         self.assertEqual({p.name for p in policy.validate_public_release(self.directory, self.version)}, policy.public_allowlist(self.version))
-        self.assertNotIn("aab", json.dumps(result).lower())
+        policy.no_bundle_metadata(result)
         self.assertNotIn(".aab", (self.directory / "SHA256SUMS.txt").read_text())
 
     def test_migration_is_idempotent_without_rebuilding_source(self):

@@ -87,3 +87,13 @@ Host-side regression checks need no SDK, emulator or signing key:
 They verify rejection of a wrong frozen hash before external tools, preservation of previous reports, rejection of the shared ADB port, and rejection of an explicit signer that differs from the canonical release pin. Full release acceptance additionally requires the native emulator run above.
 
 Android documents the [test build-type selection](https://developer.android.com/studio/test/advanced-test-setup), [AndroidTest signing config](https://developer.android.com/reference/tools/gradle-api/8.13/com/android/build/api/variant/AndroidTest), and [variant signing API](https://developer.android.com/reference/tools/gradle-api/8.13/com/android/build/api/variant/SigningConfig).
+
+## TwistForge review mode (Android 1.2.0)
+
+Use the final TwistForge1.2.0/versionCode4 Release APK and matching release fixture with `-VirtualPuzzles -ReviewMode`. Pass the frozen APK hash and select the isolated emulator explicitly as in the command above. This adds three required named checks (21 total), uses a 240,000 ms global budget, and retains the historical13/18 contracts when the flag is omitted:
+
+- `review-developer-unlock`: five native touch taps on the actual build number, wrong phrase rejection, correct phrase submission, visible launcher. The fixture resets only the isolated local gate before testing; it never enables it by injecting a final flag.
+- `review-edit-preview-persistence`: rewrite through the actual editor, save, safe preview, unchanged source lesson, WebView reload and persisted preview.
+- `review-native-document-roundtrip`: actual export/import buttons, trusted native bridge, document-picker intents and ContentResolver UTF8 I/O. Instrumentation supplies a QA-owned file as the chosen SAF result; it inspects the written schema and then deletes/reimports one note to prove the native callback restores it. This does not claim a manual system-picker interaction.
+
+The fixture snapshots and restores `twistforge.*` and `rg2.*` localStorage plus the review IndexedDB workspace. The structured report must contain `reviewModeRequested=true` and `reviewDatabaseRestored=true`. Native test photographs remain diagnostic and require visual inspection. No production app, personal device, signing identity or shared ADB server is selected implicitly.

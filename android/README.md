@@ -1,4 +1,4 @@
-# Android shell
+# TwistForge Android shell
 
 Java Activity + AndroidX WebKit 1.18.0. Gradle 8.13 / AGP 8.13.2; compile/target SDK36, Build Tools36.0.0, minimum Android7.0/API24. Java source/bytecode17. The verified local Windows build also runs on the installed Oracle JDK23.0.1; the build helper applies a process-local selector socket workaround for that exact runtime.
 
@@ -13,6 +13,8 @@ From the repository root on Windows:
 
 The helper only creates local project/build-cache files. `-SdkDirectory` and `-JavaDirectory` select already installed tools. `-CacheDirectory` and `-SigningDirectory` are optional. No environment or SDK configuration is changed globally. It downloads official checksum-pinned Gradle files and resolves Android dependencies from Google Maven/Maven Central. `android/gradlew` is the standard pinned Gradle wrapper for other platforms (`bash android/gradlew -p android :app:assembleDebug`).
 
+The visible application name is TwistForge, version1.2.0/versionCode4. The package ID `io.github.pro007m.rg2`, local origin, WebView profile and canonical release signing identity remain unchanged for compatible updates.
+
 Release outputs:
 
 - `app/build/outputs/apk/release/app-release.apk`
@@ -23,6 +25,6 @@ The initial release build created one RSA3072 PKCS12 key at the default **outsid
 
 `tools/android-emulator.ps1` creates a headless QA AVD entirely in the local build cache, using the existing Android36 image. It uses its own ADB server15048 and emulator serial `emulator-5584`; it does not select or alter personal AVDs/devices. Stop that emulator with `adb -P15048 -s emulator-5584 emu kill` after QA. No desktop UI automation is involved.
 
-Native bridge `RG2NativePort.postMessage(JSON)` accepts only the exact local origin and main frame. Commands: `ready`, `clipboard`, `theme`, `keep-awake`, `haptic`, `open-external`, `export-data`, `import-data`. Backup import/export uses the Android document picker and an 8MiB cap. The JavaScript layer validates the backup and confirms changes before applying it. Back invokes the UI's `RG2Mobile.back()`; returning false backgrounds the Activity. Pause/resume/system-theme events are dispatched without reloading the page. Native and web dialogs remain available, and Android's system text scaling is respected.
+Native bridge `RG2NativePort.postMessage(JSON)` accepts only the exact local origin and main frame. Commands: `ready`, `clipboard`, `theme`, `keep-awake`, `haptic`, `open-external`, `export-data`, `import-data`, `export-puzzle`, `import-puzzle`, `export-review`, `import-review`. Backup import/export uses the Android document picker and an 8MiB cap. The JavaScript layer validates the backup and confirms changes before applying it. Review documents use the exact `twistforge-review` schema/version1, an 8MiB UTF8 cap and `window.TwistForgeReview.receiveImport(text)`; the UI then validates every lesson and note before application. A single native document-operation gate keeps backup, puzzle and review callbacks separate. All document paths are chosen by the user through SAF. Back invokes the UI's `RG2Mobile.back()`; returning false backgrounds the Activity. Pause/resume/system-theme events are dispatched without reloading the page. Native and web dialogs remain available, and Android's system text scaling is respected.
 
 Пакеты AAB предназначены для личного кабинета владельца в магазине. Их сборка и проверка выполняются локально; в публичные GitHub Releases, Pages и архивы исходников они не включаются. Локальная подготовка магазинных пакетов отделена от публичного набора APK в `artifacts/store-upload/<версия>/`.
