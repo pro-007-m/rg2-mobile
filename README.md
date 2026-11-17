@@ -8,7 +8,9 @@ Android-версия RG2 Desktop: та же локальная библиоте�
 
 **[Скачать и установить на телефон — APK 1.1.0, 29 МБ](https://github.com/pro-007-m/rg2-mobile/releases/download/v1.1.0/RG2-Mobile-1.1.0.apk)**
 
-Для обычной установки выбирайте файл `.apk`. Файл `.aab` предназначен для загрузки в кабинеты магазинов и напрямую на телефон не устанавливается.
+Для установки на телефон скачивайте **APK**. Публичные файлы выпуска — APK, исходники и метаданные проверки. **AAB остаётся закрытым артефактом владельца для загрузки в кабинет магазина и публично не предлагается.**
+
+Удаление AAB из публичной загрузки не исключает перепаковку APK или повторную сборку открытого кода. Условия GPL для программного кода сохраняются; ключи подписи остаются приватными. Подробнее: [политика распространения](docs/distribution-policy.md).
 
 <img src="distribution/screenshots/solver-portrait.png" width="270" alt="Решатель на Android"> <img src="distribution/screenshots/settings-graphite.png" width="270" alt="Настройки Graphite на Android">
 
@@ -60,7 +62,7 @@ cd android
 .\gradlew.bat assembleRelease bundleRelease
 ```
 
-Для подписанного release Gradle использует переменные `RG2_SIGNING_STORE_FILE`, `RG2_SIGNING_STORE_PASSWORD`, `RG2_SIGNING_KEY_ALIAS`, `RG2_SIGNING_KEY_PASSWORD`. Без них сборка release остаётся неподписанной. APK/AAB для публикации должны проходить `apksigner`/проверку JAR-подписи.
+Для подписанного release Gradle использует переменные `RG2_SIGNING_STORE_FILE`, `RG2_SIGNING_STORE_PASSWORD`, `RG2_SIGNING_KEY_ALIAS`, `RG2_SIGNING_KEY_PASSWORD`. Без них сборка release остаётся неподписанной. Публичный APK должен проходить `apksigner`, закрытый AAB для кабинета магазина — проверку JAR-подписи. Команда `bundleRelease` сохранена для сборки владельцем; её результат не добавляется в публичный выпуск или архив исходников.
 
 ## Проверки
 
@@ -91,3 +93,5 @@ python tests/catalog.test.py
 Уведомления о сторонних компонентах: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Подробная сверка исходных ресурсов: [docs/source-preservation.json](docs/source-preservation.json).
 
 Программный код распространяется под **GPL-3.0**: [условия и область действия](LICENSING.md), [полный текст](LICENSE). Исходники входят в соответствующий выпуск. Права на учебные материалы этим не меняются.
+
+Проверка подготовки публичного выпуска требует Python 3.11 или новее и не использует SDK, эмулятор, сеть либо приватные ключи. Она проверяет запрет AAB и ключей, сохранение замороженных APK/исходников и разделение публичных файлов с локальной папкой магазинных пакетов.

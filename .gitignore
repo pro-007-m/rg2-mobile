@@ -8,6 +8,7 @@ android/local.properties
 *.keystore
 *.p12
 *.key
+*.aab
 *.env
 signing.properties
 **/signing.properties

@@ -65,5 +65,16 @@
     "status": "partial-source-license-verified",
     "details": "Original RG2 Apache-2.0 source matches 442 of 505 teaching texts. Remaining text and all raster-conversion provenance require further confirmation; generated solver move sequences are a separate category."
   },
-  "privacy": "Account email, credentials, verification codes and signing key are not included in this repository or release."
+  "privacy": "Account email, credentials, verification codes and signing key are not included in this repository or release.",
+  "artifactPolicyUpdatedOn": "2026-11-17",
+  "publicDistribution": {
+    "artifacts": [
+      "APK",
+      "source archive",
+      "manifest",
+      "checksums"
+    ],
+    "storeBundles": "local-only; never uploaded to public releases",
+    "signingKeys": "local-only; never included in source or release assets"
+  }
 }
