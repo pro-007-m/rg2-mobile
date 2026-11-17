@@ -70,6 +70,7 @@ cd android
 npm ci --ignore-scripts
 npm test
 python tests/catalog.test.py
+python tests/test_android_stage_release.py
 ```
 
 Проверяются сохранность всех исходных ресурсов по SHA-256, тексты и формулы каталога, навигация и копирование, таймер, 54 точных перестановки ходов, невозможные раскраски, ориентация креста, решения и этапы, материалы модели, жесты и Android-мост. Инструментальные Android-проверки находятся в `android/app/src/androidTest/`.
