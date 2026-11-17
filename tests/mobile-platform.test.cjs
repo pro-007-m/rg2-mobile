@@ -23,7 +23,7 @@ test('Android keeps all library data, exposes mobile backup and has no desktop u
   const d=a.w.document;
   assert.equal(d.querySelectorAll('input[name=theme]').length,3);
   assert.ok(d.querySelector('#mobile-export'));assert.ok(d.querySelector('#mobile-import'));assert.ok(d.querySelector('#mobile-awake').checked);
-  assert.ok(d.querySelector('#app-version').textContent.includes('Android 1.0.1'));
+  assert.ok(d.querySelector('#app-version').textContent.includes('Android 1.1.0'));
   assert.equal(d.querySelector('#update-install'),null);
   assert.ok(!a.messages.some(m=>m.type.startsWith('update-')));
  }finally{a.w.dispatchEvent(new a.w.Event('pagehide'));a.dom.window.close();}
@@ -62,6 +62,15 @@ test('backup contains only RG2 storage and validates before any write; cancellat
   assert.equal(a.w.localStorage.length,count);
   a.w.confirm=()=>false;assert.equal(a.w.RG2Mobile.receiveImport(json),false);
   assert.equal(a.w.localStorage.getItem('rg2.favorites'),'["TEST-0"]');
+ }finally{a.w.dispatchEvent(new a.w.Event('pagehide'));a.dom.window.close();}
+});
+
+test('Android back exits the virtual game viewport before changing the route',async()=>{
+ const a=await app();try{
+  const root=a.w.document.createElement('section');root.className='puz puz-fullscreen';a.w.document.body.append(root);
+  const before=a.w.RG2App.state.route;let changed=0;root.addEventListener('rg2:puzzle-fullscreen-change',()=>changed++);
+  assert.equal(a.w.RG2Mobile.back(),true);assert.equal(root.classList.contains('puz-fullscreen'),false);
+  assert.equal(changed,1);assert.equal(a.w.RG2App.state.route,before);
  }finally{a.w.dispatchEvent(new a.w.Event('pagehide'));a.dom.window.close();}
 });
 test('native system theme and lifecycle preserve explicit preference and release wake lock',async()=>{

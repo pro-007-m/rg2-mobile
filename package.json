@@ -1,11 +1,13 @@
 {
   "name": "rg2-mobile",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "private": true,
   "scripts": {
-    "test": "node tests/tools.test.cjs && node tests/algorithms.test.cjs && node tests/settings.test.cjs && node tests/solver-core.test.mjs && node tests/solver-catalog.test.mjs && node tests/solver-scramble.test.mjs && node tests/solver-orientation.test.mjs && node tests/solver-worker-frame.test.mjs && node tests/solver-model.test.mjs && node tests/solver-image.test.mjs && node tests/solver-trace.test.mjs && node --test tests/mobile-platform.test.cjs && node tests/mobile-gestures.test.mjs && node --test tests/mobile-storage.test.cjs"
+    "test": "node tests/tools.test.cjs && node tests/algorithms.test.cjs && node tests/settings.test.cjs && node tests/solver-core.test.mjs && node tests/solver-catalog.test.mjs && node tests/solver-scramble.test.mjs && node tests/solver-orientation.test.mjs && node tests/solver-worker-frame.test.mjs && node tests/solver-model.test.mjs && node tests/solver-image.test.mjs && node tests/solver-trace.test.mjs && node --test tests/mobile-platform.test.cjs && node tests/mobile-gestures.test.mjs && node --test tests/mobile-storage.test.cjs",
+    "test:puzzles": "node --test --test-concurrency=2 tests/puzzles-*.test.mjs"
   },
   "devDependencies": {
     "jsdom": "26.1.0"
-  }
+  },
+  "license": "GPL-3.0-only"
 }

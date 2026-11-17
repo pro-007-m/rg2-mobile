@@ -9,6 +9,7 @@ param(
     [Parameter(Mandatory=$true)][ValidateRange(1,2147483647)][int]$ExpectedVersionCode,
     [ValidateSet('Release','Debug')][string]$BuildType = 'Release',
     [string]$ExpectedSignerSha256 = '',
+    [switch]$VirtualPuzzles,
     [string]$SdkDirectory = '',
     [string]$JavaDirectory = ''
 )
@@ -31,6 +32,7 @@ $report = [ordered]@{passed=$false;buildType=$BuildType.ToLowerInvariant();targe
 $savedJava = $env:JAVA_HOME
 $failure = $null
 $stage = 'verify-input'
+$expectedCheckCount = if ($VirtualPuzzles) { 18 } else { 13 }
 function Capture-Command([string]$Name, [string]$Program, [string[]]$CommandArguments) {
     $lines = @(& $Program @CommandArguments 2>&1)
     $code = $LASTEXITCODE
@@ -97,7 +99,10 @@ try {
     }
     $stage = 'instrumentation'
     $requireRelease = ($BuildType -eq 'Release').ToString().ToLowerInvariant()
-    $result = Adb-Command $stage @('shell','am','instrument','-w','-e','timeoutMs','90000','-e','requireRelease',$requireRelease,
+    $virtualFlag = if ($VirtualPuzzles) { 'true' } else { 'false' }
+    $smokeTimeout = if ($VirtualPuzzles) { '180000' } else { '90000' }
+    $report.virtualPuzzlesRequired = [bool]$VirtualPuzzles
+    $result = Adb-Command $stage @('shell','am','instrument','-w','-e','timeoutMs',$smokeTimeout,'-e','virtualPuzzles',$virtualFlag,'-e','requireRelease',$requireRelease,
         '-e','expectedApkSha256',$actualHash,'-e','expectedFixtureSha256',$report.testApkSha256,'-e','expectedSignerSha256',$ExpectedSignerSha256,'-e','expectedVersionName',$ExpectedVersionName,
         '-e','expectedVersionCode',[string]$ExpectedVersionCode,'io.github.pro007m.rg2.test/io.github.pro007m.rg2.OfflineSmokeInstrumentation')
     Require-Success $result 'Instrumentation command failed.'
@@ -105,8 +110,13 @@ try {
     if (!$match.Success) { throw 'Instrumentation did not return its structured report.' }
     $runtime = $match.Groups[1].Value | ConvertFrom-Json
     $report.runtime = $runtime
-    if (!$runtime.passed -or $runtime.checks.Count -ne 13 -or @($runtime.checks | Where-Object { !$_.passed }).Count -or
-        $result.output -notmatch '(?m)^INSTRUMENTATION_CODE: -1\s*$') { throw 'Instrumentation did not pass all 13 smoke checks.' }
+    if (!$runtime.passed -or $runtime.checks.Count -ne $expectedCheckCount -or @($runtime.checks | Where-Object { !$_.passed }).Count -or
+        $result.output -notmatch '(?m)^INSTRUMENTATION_CODE: -1\s*$') { throw ('Instrumentation did not pass all ' + $expectedCheckCount + ' smoke checks.') }
+    if ($VirtualPuzzles) {
+        foreach ($required in @('virtual-game-boot','virtual-nxn50','virtual-polyhedra','virtual-ortega-worker','virtual-native-touch-and-restore')) {
+            if (@($runtime.checks | Where-Object { $_.name -eq $required -and $_.passed }).Count -ne 1) { throw ('Required virtual-puzzle verification is missing: ' + $required) }
+        }
+    }
     $identity = $runtime.installedTarget
     if (!$identity -or $identity.installedApkSha256 -ne $actualHash -or $identity.fixtureApkSha256 -ne $report.testApkSha256 -or $identity.signerSha256.Count -ne 1 -or
         $identity.signerSha256[0] -ne $ExpectedSignerSha256 -or $runtime.versionName -ne $ExpectedVersionName -or $runtime.versionCode -ne $ExpectedVersionCode) { throw 'Runtime identity does not match the frozen target APK.' }
@@ -131,4 +141,4 @@ try {
     $report | ConvertTo-Json -Depth 24 | Set-Content -LiteralPath $reportPath -Encoding utf8
 }
 if ($failure) { throw ('Android native verification failed at ' + $stage + '. See ' + $reportPath + "`n" + $failure.Exception.Message) }
-[pscustomobject]@{passed=$true;buildType=$report.buildType;versionName=$ExpectedVersionName;versionCode=$ExpectedVersionCode;checks=13;report=$reportPath}
+[pscustomobject]@{passed=$true;buildType=$report.buildType;versionName=$ExpectedVersionName;versionCode=$ExpectedVersionCode;checks=$expectedCheckCount;report=$reportPath}

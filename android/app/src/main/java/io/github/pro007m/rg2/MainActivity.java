@@ -63,6 +63,8 @@ public final class MainActivity extends Activity {
     private boolean destroyed;
     private boolean documentPickerOpen;
     private String pendingExport;
+    private boolean pendingPuzzleImport;
+    private boolean pendingPuzzleExport;
     private String resolvedTheme;
 
     @Override public void onCreate(Bundle savedInstanceState) {
@@ -237,7 +239,23 @@ public final class MainActivity extends Activity {
             case "export-data":
                 beginExport(data.getString("text"));
                 break;
+            case "export-puzzle": {
+                String text = data.getString("text");
+                JSONObject game = new JSONObject(text);
+                if (!"rg2-puzzle-game".equals(game.optString("schema")) || game.optInt("version") != 1) throw new IllegalArgumentException();
+                String name = data.optString("name", "RG2-puzzle.json");
+                if (!name.matches("RG2-(cube|pyramid|dodecahedron)-[0-9]{1,2}\\.json")) name = "RG2-puzzle.json";
+                beginExport(text, name, true);
+                break;
+            }
             case "import-data":
+                if (documentPickerOpen) throw new IllegalStateException();
+                pendingPuzzleImport = false;
+                beginImport();
+                break;
+            case "import-puzzle":
+                if (documentPickerOpen) throw new IllegalStateException();
+                pendingPuzzleImport = true;
                 beginImport();
                 break;
             default: throw new IllegalArgumentException();
@@ -245,6 +263,10 @@ public final class MainActivity extends Activity {
     }
 
     private void beginExport(String text) throws Exception {
+        beginExport(text, "RG2-backup.json", false);
+    }
+
+    private void beginExport(String text, String name, boolean puzzle) throws Exception {
         if (documentPickerOpen || text.getBytes(StandardCharsets.UTF_8).length > MAX_DATA_BYTES) {
             throw new IllegalStateException();
         }
@@ -252,8 +274,9 @@ public final class MainActivity extends Activity {
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("application/json");
-        intent.putExtra(Intent.EXTRA_TITLE, "RG2-backup.json");
+        intent.putExtra(Intent.EXTRA_TITLE, name);
         pendingExport = text;
+        pendingPuzzleExport = puzzle;
         documentPickerOpen = true;
         try { startActivityForResult(intent, EXPORT_REQUEST); }
         catch (Exception error) { pendingExport = null; documentPickerOpen = false; throw error; }
@@ -275,7 +298,11 @@ public final class MainActivity extends Activity {
         if (requestCode != EXPORT_REQUEST && requestCode != IMPORT_REQUEST) return;
         documentPickerOpen = false;
         String exportText = pendingExport;
+        boolean importPuzzle = pendingPuzzleImport;
+        boolean exportPuzzle = pendingPuzzleExport;
         pendingExport = null;
+        pendingPuzzleImport = false;
+        pendingPuzzleExport = false;
         if (resultCode != RESULT_OK || data == null || data.getData() == null) return;
         Uri uri = data.getData();
         documents.execute(() -> {
@@ -286,7 +313,7 @@ public final class MainActivity extends Activity {
                         if (stream == null) throw new IllegalStateException();
                         stream.write(exportText.getBytes(StandardCharsets.UTF_8));
                     }
-                    runOnUiThread(() -> showToast("Резервная копия сохранена."));
+                    runOnUiThread(() -> showToast(exportPuzzle ? "Партия сохранена." : "Резервная копия сохранена."));
                 } else {
                     String text;
                     try (InputStream stream = getContentResolver().openInputStream(uri)) {
@@ -303,7 +330,8 @@ public final class MainActivity extends Activity {
                     // Import validation and explicit replacement confirmation belong to the UI.
                     String jsonText = text.startsWith("\uFEFF") ? text.substring(1) : text;
                     new JSONObject(jsonText);
-                    runOnUiThread(() -> evaluate("if(window.RG2Mobile&&window.RG2Mobile.receiveImport){window.RG2Mobile.receiveImport("
+                    String receiver = importPuzzle ? "receivePuzzleImport" : "receiveImport";
+                    runOnUiThread(() -> evaluate("if(window.RG2Mobile&&window.RG2Mobile." + receiver + "){window.RG2Mobile." + receiver + "("
                         + JSONObject.quote(jsonText) + ");}"));
                 }
             } catch (Exception error) {

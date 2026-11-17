@@ -15,4 +15,6 @@ signing.properties
 *.log
 *.iml
 distribution/private/
+__pycache__/
+*.pyc
 

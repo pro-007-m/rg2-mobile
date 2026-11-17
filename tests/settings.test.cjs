@@ -19,13 +19,13 @@ test('Settings show current app version and local controls while original credit
     assert.equal(await window.RG2App.ready, true);
     window.RG2App.navigate({ type: 'settings' });
     const settings = window.document.querySelector('.settings-layout');
-    assert.ok(settings.textContent.includes('RG2 · Android 1.0.1'));
+    assert.ok(settings.textContent.includes('RG2 · Android 1.1.0'));
     assert.ok(!/RG2F|RubicsGuide|автор/i.test(settings.textContent));
     assert.equal(settings.querySelectorAll('[data-open-item]').length, 0);
     assert.equal(settings.querySelectorAll('input[name="theme"]').length, 3);
     assert.ok(settings.textContent.includes('Горячие клавиши'));
     assert.ok(settings.textContent.includes('сохраняются на этом устройстве'));
-    assert.match(read('android/app/build.gradle'), /versionName.*1\.0\.1/);
+    assert.match(read('android/app/build.gradle'), /versionName.*1\.1\.0/);
     assert.ok(window.RG2App.items.has('ABOUT-0'));
     window.RG2App.openItem('ABOUT-0');
     assert.ok(window.document.querySelector('#article-body').textContent.trim().length > 100);

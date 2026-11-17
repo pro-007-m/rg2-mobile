@@ -1,5 +1,8 @@
 # Third-party notices and source attribution
 
+Original application code is distributed under GPL-3.0-only; see [LICENSING.md](LICENSING.md) and [LICENSE](LICENSE). Third-party notices below and the independent lesson/media rights remain intact.
+
+
 This file records the sources and component licenses used by RG2 Mobile. It does **not** apply one license to the complete APK or establish redistribution permission for every imported lesson and image. The remaining source-coverage questions are recorded in [the source audit](docs/source-license-audit.md).
 
 ## Desktop foundation
@@ -45,6 +48,16 @@ Sources: [AndroidX WebKit release](https://developer.android.com/jetpack/android
 ## Additional solver formula sources
 
 The local solver catalog includes functional algorithm notations imported from RG2 and SpeedCubeDB. Source URLs, fetched-page hashes, case coverage and import scope are retained in [docs/solver-sources.json](docs/solver-sources.json) and the local solver catalog. The earlier RG2 Apache license is not asserted to cover independently imported later collections. This provenance record does not itself grant a new license to any third-party source.
+
+## cubing.js and virtual puzzles
+
+The virtual-puzzle solver uses the unmodified local JavaScript distribution of **cubing.js 0.66.1**, revision `8544249ff1e662557df912065a26b5f90f4df574`, under its **MPL-2.0** option. Copyright belongs to the cubing.js authors, including Lucas Garron and Tom Rokicki; upstream retains separately licensed vendored component notices. JavaScript, licenses, upstream README, source and npm integrity records are retained under `data/puzzles/vendor/cubing/` and are included offline. [Pinned upstream source](https://github.com/cubing/cubing.js/tree/8544249ff1e662557df912065a26b5f90f4df574).
+
+The geometric models and game controls are implemented separately. The reference Magic Cube Puzzle 3D APKS is an external research input; its code, images, models and audio are not bundled. These notices do not relicense the existing library content.
+
+## RCube constructive backend
+
+The separately attributed **RCube** backend adapts ShellPuppy/RCube revision `c0e6df125db141eaf0044bf5a39cb54c942cfab2` under **GPL-3.0-only**. Complete executable JavaScript source, original C++ reference files, reproducible adaptation script, upstream notices, GPL text and change record are included offline in `data/puzzles/vendor/rcube/` and in this public source repository. [Pinned upstream](https://github.com/ShellPuppy/RCube/tree/c0e6df125db141eaf0044bf5a39cb54c942cfab2). This component notice does not relicense pre-existing lessons or media.
 
 ## Packaged notices and scope
 

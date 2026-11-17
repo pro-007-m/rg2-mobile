@@ -4,3 +4,4 @@
 *.jpg binary
 *.gif binary
 *.jar binary
+data/puzzles/vendor/** whitespace=cr-at-eol,-blank-at-eol,-blank-at-eof,-space-before-tab

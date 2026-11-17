@@ -1,7 +1,7 @@
 /* Native Android integration. The library and solver stay fully local. */
 (() => {
   'use strict';
-  const VERSION='1.0.1', RELEASES='https://github.com/pro-007-m/rg2-mobile/releases/latest';
+  const VERSION='1.1.0', RELEASES='https://github.com/pro-007-m/rg2-mobile/releases/latest';
   const $=selector=>document.querySelector(selector);
   let nativeInfo=null,menuObserver=null,initialized=false;
   function post(type,values={}) {
@@ -40,6 +40,9 @@
   }
   function closeMenu(){ $('#sidebar')?.classList.remove('expanded');syncMenu(); }
   function back(){
+    const fullscreen=document.querySelector('.puz-fullscreen');
+    if(fullscreen){fullscreen.classList.remove('puz-fullscreen');fullscreen.dispatchEvent(new Event('rg2:puzzle-fullscreen-change',{bubbles:true}));return true;}
+    if(document.fullscreenElement){document.exitFullscreen().catch(()=>{});return true;}
     const dialog=document.querySelector('dialog[open]');if(dialog){dialog.close();return true;}
     if($('#sidebar')?.classList.contains('expanded')){closeMenu();return true;}
     if(/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||'')){document.activeElement.blur();return true;}
@@ -86,7 +89,17 @@
     if(!d){d=document.createElement('dialog');d.id='mobile-privacy-dialog';d.className='mobile-dialog';d.innerHTML='<h2>Конфиденциальность</h2><p>RG2 работает без регистрации, рекламы и аналитики. Библиотека, цвета куба, избранное, результаты и настройки обрабатываются и хранятся на этом устройстве.</p><p>Приложение не запрашивает доступ к камере, микрофону, контактам или геопозиции и само не отправляет данные на сервер. Видео, магазин и GitHub открываются отдельно в браузере. Для них действуют правила соответствующих сайтов.</p><p>Резервная копия создаётся и открывается только по твоей команде через системный выбор файла. Удаление данных приложения в настройках Android очищает локальный профиль; выбранные тобой внешние копии остаются у тебя.</p><form method="dialog"><button class="action-button">Закрыть</button></form>';document.body.append(d);}
     d.showModal();
   }
-  const mobile=window.RG2Mobile={back,receiveImport,exportData,validateImport,
+  async function receivePuzzleImport(text){
+    try{
+      if(typeof text!=='string'||text.length>8*1024*1024)throw new Error('Файл партии слишком большой.');
+      const data=JSON.parse(text);if(data?.schema!=='rg2-puzzle-game'||data.version!==1)throw new Error('Это не файл партии RG2.');
+      const app=window.RG2App;await app.ready;
+      if(app.state.route?.type!=='tool'||app.state.route.id!=='virtual-puzzles')app.navigate({type:'tool',id:'virtual-puzzles'});
+      for(let i=0;i<100;i++){const tool=document.querySelector('#tool-host')?.virtualPuzzle;if(tool){await tool.ready;return await tool.receiveImport(text);}await new Promise(resolve=>setTimeout(resolve,50));}
+      throw new Error('Не удалось открыть виртуальную головоломку.');
+    }catch(error){window.RG2App?.toast(error.message);return false;}
+  }
+  const mobile=window.RG2Mobile={back,receiveImport,receivePuzzleImport,exportData,validateImport,
     receiveNativeInfo(value){if(value&&typeof value==='object')nativeInfo=value;},get nativeInfo(){return nativeInfo;}
   };
   document.addEventListener('visibilitychange',syncAwake);
